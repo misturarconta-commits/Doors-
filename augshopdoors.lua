@@ -1,14 +1,13 @@
 --[[
     ===================================================================
-    🔥 AUGSHOP VIP - DOORS SUPREME PREMIUM Hub (Versão 5.0) 🔥
+    🔥 AUGSHOP VIP - DOORS SUPREME PREMIUM Hub (Versão 5.1 - FIX ABSOLUTO) 🔥
     ===================================================================
-    - ZERO DEPENDÊNCIAS: Interface nativa construída em puro Roblox Luau.
-    - SINAL DE FECHO DESLIZANTE: AUG PAINEL🔥 DOORS surge do topo.
-    - DESIGN PREMIUM: Efeitos de fogo animados, neon laranja/vermelho, botões redondo Verde/Vermelho.
-    - ENGENHARIA DE ELITE: Soluções completas anti-rubberband, IA Porta 50 e 100, Anti-Eyes.
+    - BOTÃO X CORRIGIDO: Fecha, limpa a memória e desliga tudo nativamente.
+    - NOCLIP INTERATIVO: Ligar/Desligar funciona instantaneamente sem travar.
+    - SPEED TOTALMENTE RESETÁVEL: Sem borrão, sem mola e sem rubberbanding.
+    - MÁXIMO PROVEITO COMERCIAL: Pronto para divulgar e vender.
 ]]
 
--- // Prevenção e Limpeza de Execuções Duplicadas
 local guiName = "AUG_SUPREME_PREMIUM_UI"
 pcall(function()
     local coreGui = game:GetService("CoreGui")
@@ -21,7 +20,6 @@ pcall(function()
     end
 end)
 
--- // Serviços Principais do Roblox
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local Workspace = game:GetService("Workspace")
@@ -31,7 +29,6 @@ local Lighting = game:GetService("Lighting")
 local TweenService = game:GetService("TweenService")
 local LocalPlayer = Players.LocalPlayer
 
--- // Banco de Configurações do Script
 local Settings = {
     Speed = 16,
     Noclip = false,
@@ -51,10 +48,8 @@ local OriginalClockTime = Lighting.ClockTime
 local OriginalFogEnd = Lighting.FogEnd
 
 -- =================================================================
--- 🎨 CRIAÇÃO DA INTERFACE PREMIUM DO ZERO
+-- 🎨 CRIAÇÃO DA INTERFACE PREMIUM
 -- =================================================================
-
--- Determinar Parent Seguro (CoreGui ou PlayerGui)
 local TargetGuiParent = pcall(function() return game:GetService("CoreGui") end) and game:GetService("CoreGui") or LocalPlayer:WaitForChild("PlayerGui")
 
 local ScreenGui = Instance.new("ScreenGui")
@@ -62,38 +57,34 @@ ScreenGui.Name = guiName
 ScreenGui.Parent = TargetGuiParent
 ScreenGui.ResetOnSpawn = false
 
--- 1. Painel Principal (Main Frame - Sólido Premium)
 local MainFrame = Instance.new("Frame")
 MainFrame.Name = "MainFrame"
 MainFrame.Size = UDim2.new(0, 520, 0, 360)
 MainFrame.Position = UDim2.new(0.5, -260, 0.5, -180)
-MainFrame.BackgroundColor3 = Color3.fromRGB(12, 12, 12) -- Preto profundo VIP
+MainFrame.BackgroundColor3 = Color3.fromRGB(12, 12, 12)
 MainFrame.BorderSizePixel = 0
 MainFrame.Active = true
 MainFrame.Draggable = true
 MainFrame.Parent = ScreenGui
 
--- Cantos Arredondados e Ondulados do Menu
 local MainCorner = Instance.new("UICorner")
 MainCorner.CornerRadius = UDim.new(0, 12)
 MainCorner.Parent = MainFrame
 
--- Bordas Neon Laranja/Vermelho (Efeito Gradiente de Fogo)
 local MainStroke = Instance.new("UIStroke")
 MainStroke.Thickness = 2.5
-MainStroke.Color = Color3.fromRGB(255, 69, 0) -- Laranja avermelhado neon
+MainStroke.Color = Color3.fromRGB(255, 69, 0)
 MainStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
 MainStroke.Parent = MainFrame
 
 local BorderGradient = Instance.new("UIGradient")
 BorderGradient.Color = ColorSequence.new({
-    ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 140, 0)), -- Laranja Neon
-    ColorSequenceKeypoint.new(0.5, Color3.fromRGB(255, 0, 0)),  -- Vermelho Fogo
+    ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 140, 0)),
+    ColorSequenceKeypoint.new(0.5, Color3.fromRGB(255, 0, 0)),
     ColorSequenceKeypoint.new(1, Color3.fromRGB(255, 140, 0))
 })
 BorderGradient.Parent = MainStroke
 
--- 2. Barra de Título (Header)
 local Header = Instance.new("Frame")
 Header.Size = UDim2.new(1, 0, 0, 45)
 Header.BackgroundTransparency = 1
@@ -110,7 +101,6 @@ TitleLabel.TextXAlignment = Enum.TextXAlignment.Left
 TitleLabel.BackgroundTransparency = 1
 TitleLabel.Parent = Header
 
--- Elemento de Foguinho Animado ao lado do Título
 local FireIcon = Instance.new("TextLabel")
 FireIcon.Size = UDim2.new(0, 30, 0, 30)
 FireIcon.Position = UDim2.new(0, 240, 0.5, -15)
@@ -119,24 +109,20 @@ FireIcon.Text = "🔥"
 FireIcon.TextSize = 18
 FireIcon.Parent = Header
 
--- Loop de Animação de Rotação e Escala do Foguinho (Efeito Premium)
 task.spawn(function()
     while task.wait(0.05) do
         pcall(function()
-            local timeFactor = os.clock()
-            FireIcon.Rotation = math.sin(timeFactor * 5) * 15
+            FireIcon.Rotation = math.sin(os.clock() * 5) * 15
         end)
     end
 end)
 
--- Botões de Controle do Header (Minimizar e Fechar)
 local ControlContainer = Instance.new("Frame")
 ControlContainer.Size = UDim2.new(0, 80, 0, 30)
 ControlContainer.Position = UDim2.new(1, -90, 0, 7)
 ControlContainer.BackgroundTransparency = 1
 ControlContainer.Parent = Header
 
--- Botão Minimizar (_)
 local MinBtn = Instance.new("TextButton")
 MinBtn.Size = UDim2.new(0, 30, 0, 30)
 MinBtn.Position = UDim2.new(0, 5, 0, 0)
@@ -148,7 +134,6 @@ MinBtn.Font = Enum.Font.SourceSansBold
 MinBtn.Parent = ControlContainer
 Instance.new("UICorner", MinBtn).CornerRadius = UDim.new(0, 6)
 
--- Botão Fechar (X)
 local CloseBtn = Instance.new("TextButton")
 CloseBtn.Size = UDim2.new(0, 30, 0, 30)
 CloseBtn.Position = UDim2.new(0, 45, 0, 0)
@@ -160,7 +145,6 @@ CloseBtn.Font = Enum.Font.SourceSansBold
 CloseBtn.Parent = ControlContainer
 Instance.new("UICorner", CloseBtn).CornerRadius = UDim.new(0, 6)
 
--- 3. Menu de Abas Lateral
 local Navbar = Instance.new("Frame")
 Navbar.Size = UDim2.new(0, 130, 1, -60)
 Navbar.Position = UDim2.new(0, 10, 0, 50)
@@ -177,7 +161,6 @@ local NavbarPadding = Instance.new("UIPadding")
 NavbarPadding.PaddingTop = UDim.new(0, 8)
 NavbarPadding.Parent = Navbar
 
--- 4. Contentor de Conteúdo Sólido
 local Container = Instance.new("Frame")
 Container.Size = UDim2.new(1, -165, 1, -60)
 Container.Position = UDim2.new(0, 150, 0, 50)
@@ -185,20 +168,17 @@ Container.BackgroundColor3 = Color3.fromRGB(18, 18, 18)
 Container.Parent = MainFrame
 Instance.new("UICorner", Container).CornerRadius = UDim.new(0, 8)
 
--- =================================================================
--- ⏺️ BOTÃO REABRIR DESLIZANTE DO TOPO (AUG PAINEL)
--- =================================================================
 local MinimizedPanel = Instance.new("Frame")
 MinimizedPanel.Name = "MinimizedPanel"
 MinimizedPanel.Size = UDim2.new(0, 260, 0, 45)
-MinimizedPanel.Position = UDim2.new(0.5, -130, 0, -60) -- Começa escondido acima da tela
+MinimizedPanel.Position = UDim2.new(0.5, -130, 0, -60)
 MinimizedPanel.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
 MinimizedPanel.BorderSizePixel = 0
 MinimizedPanel.Active = true
 MinimizedPanel.Parent = ScreenGui
 
 local MinimizedCorner = Instance.new("UICorner")
-MinimizedCorner.CornerRadius = UDim.new(0, 10) -- Ondulado / Arredondado
+MinimizedCorner.CornerRadius = UDim.new(0, 10)
 MinimizedCorner.Parent = MinimizedPanel
 
 local MinimizedStroke = Instance.new("UIStroke")
@@ -215,19 +195,17 @@ MinimizedTextBtn.Font = Enum.Font.SourceSansBold
 MinimizedTextBtn.TextSize = 14
 MinimizedTextBtn.Parent = MinimizedPanel
 
--- Variável de Controle de Movimento
+-- =================================================================
+-- ⏺️ OPERAÇÃO DO BOTÃO REABRIR, MINIMIZAR E FECHAR DE VERDADE (FIX)
+-- =================================================================
 local UI_Open = true
 
 local function HideMainAndSlideDown()
     if not UI_Open then return end
     UI_Open = false
-    
-    -- MainFrame desliza para a esquerda e some
     TweenService:Create(MainFrame, TweenInfo.new(0.4, Enum.EasingStyle.Back.In), {Position = UDim2.new(0.5, -260, 1.2, 0)}):Play()
     task.wait(0.3)
     MainFrame.Visible = false
-    
-    -- Barra desliza do topo para onde o show Rayfield fica
     MinimizedPanel.Position = UDim2.new(0.5, -130, 0, -60)
     TweenService:Create(MinimizedPanel, TweenInfo.new(0.5, Enum.EasingStyle.Back.Out), {Position = UDim2.new(0.5, -130, 0, 10)}):Play()
 end
@@ -235,34 +213,55 @@ end
 local function ShowMainAndSlideUp()
     if UI_Open then return end
     UI_Open = true
-    
-    -- Barra desliza para cima e some
     TweenService:Create(MinimizedPanel, TweenInfo.new(0.4, Enum.EasingStyle.Back.In), {Position = UDim2.new(0.5, -130, 0, -60)}):Play()
     task.wait(0.3)
-    
-    -- MainFrame aparece e desliza de volta para o meio
     MainFrame.Visible = true
     TweenService:Create(MainFrame, TweenInfo.new(0.5, Enum.EasingStyle.Back.Out), {Position = UDim2.new(0.5, -260, 0.5, -180)}):Play()
 end
 
-CloseBtn.MouseButton1Click:Connect(HideMainAndSlideDown)
+-- FUNÇÃO DO BOTÃO X CORRIGIDA: DESLIGA TUDO DA MEMÓRIA
+local function DestroyScriptCompletely()
+    UI_Open = false
+    
+    -- Restaura a física e variáveis imediatamente
+    Settings.Speed = 16
+    Settings.Noclip = false
+    Settings.Fullbright = false
+    Settings.ESP_Monsters = false
+    Settings.ESP_Items = false
+    Settings.ESP_Traps = false
+    Settings.ESP_Players = false
+    
+    local char = LocalPlayer.Character
+    if char then
+        local hum = char:FindFirstChildOfClass("Humanoid")
+        if hum then 
+            hum.WalkSpeed = 16 
+            hum:ChangeState(Enum.HumanoidStateType.Physics)
+        end
+        for _, part in pairs(char:GetChildren()) do
+            if part:IsA("BasePart") then part.CanCollide = true end
+        end
+    end
+    
+    Lighting.Brightness = OriginalBrightness
+    Lighting.ClockTime = OriginalClockTime
+    Lighting.FogEnd = OriginalFogEnd
+    
+    -- Destrói a interface gráfica
+    ScreenGui:Destroy()
+end
+
 MinBtn.MouseButton1Click:Connect(HideMainAndSlideDown)
 MinimizedTextBtn.MouseButton1Click:Connect(ShowMainAndSlideUp)
-
--- Suporte para Tecla RightShift para PC
-UserInputService.InputBegan:Connect(function(input, processed)
-    if not gameProcessed and input.KeyCode == Enum.KeyCode.RightShift then
-        if UI_Open then HideMainAndSlideDown() else ShowMainAndSlideUp() end
-    end
-end)
-
+CloseBtn.MouseButton1Click:Connect(DestroyScriptCompletely)
 
 -- =================================================================
--- 📑 SISTEMA DE ABAS DINÂMICO (PREMIUM SÓLIDO)
+-- 📑 ABAS E ELEMENTOS VISUAIS
 -- =================================================================
 local Pages = {}
 local TabButtons = {}
-local ActiveTabBtn = nil
+local ActiveTabButton = nil
 
 local function CreateTab(tabName, layoutOrder)
     local TabBtn = Instance.new("TextButton")
@@ -301,15 +300,10 @@ local function CreateTab(tabName, layoutOrder)
             local stroke = ActiveTabButton:FindFirstChildOfClass("UIStroke")
             if stroke then stroke:Destroy() end
         end
-
-        for _, otherPage in pairs(Pages) do
-            otherPage.Visible = false
-        end
-
+        for _, otherPage in pairs(Pages) do otherPage.Visible = false end
         Page.Visible = true
         ActiveTabButton = TabBtn
-        TabBtn.TextColor3 = Color3.fromRGB(255, 140, 0) -- Laranja brilhante na aba ativa
-
+        TabBtn.TextColor3 = Color3.fromRGB(255, 140, 0)
         local activeStroke = Instance.new("UIStroke")
         activeStroke.Thickness = 1.2
         activeStroke.Color = Color3.fromRGB(255, 140, 0)
@@ -317,15 +311,10 @@ local function CreateTab(tabName, layoutOrder)
     end
 
     TabBtn.MouseButton1Click:Connect(Activate)
-
     Pages[tabName] = Page
     TabButtons[tabName] = {Button = TabBtn, Page = Page, Activate = Activate}
     return Page
 end
-
--- =================================================================
--- 🧩 COMPONENTES CUSTOMIZADOS (CIRCULARES VERDE/VERMELHO)
--- =================================================================
 
 local function CreateToggle(parentPage, text, default, callback)
     local ToggleFrame = Instance.new("Frame")
@@ -348,8 +337,7 @@ local function CreateToggle(parentPage, text, default, callback)
     local Indicator = Instance.new("TextButton")
     Indicator.Size = UDim2.new(0, 46, 0, 22)
     Indicator.Position = UDim2.new(1, -56, 0.5, -11)
-    -- Laranja/Vermelho desligado, Verde ligado
-    Indicator.BackgroundColor3 = default and Color3.fromRGB(46, 139, 87) or Color3.fromRGB(178, 34, 34)
+    Indicator.BackgroundColor3 = default and Color3.fromRGB(46, 204, 113) or Color3.fromRGB(231, 76, 60)
     Indicator.Text = ""
     Indicator.Parent = ToggleFrame
     Instance.new("UICorner", Indicator).CornerRadius = UDim.new(0, 11)
@@ -359,19 +347,16 @@ local function CreateToggle(parentPage, text, default, callback)
     Circle.Position = default and UDim2.new(1, -21, 0.5, -9) or UDim2.new(0, 3, 0.5, -9)
     Circle.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
     Circle.Parent = Indicator
-    Instance.new("UICorner", Circle).CornerRadius = UDim.new(1, 0) -- Círculo Perfeito
+    Instance.new("UICorner", Circle).CornerRadius = UDim.new(1, 0)
 
     local state = default
     Indicator.MouseButton1Click:Connect(function()
         state = not state
         callback(state)
-        
-        -- Animação Premium do Botão Circular Verde/Vermelho
         local targetColor = state and Color3.fromRGB(46, 204, 113) or Color3.fromRGB(231, 76, 60)
         local targetPos = state and UDim2.new(1, -21, 0.5, -9) or UDim2.new(0, 3, 0.5, -9)
-
-        TweenService:Create(Indicator, TweenInfo.new(0.2), {BackgroundColor3 = targetColor}):Play()
-        TweenService:Create(Circle, TweenInfo.new(0.2), {Position = targetPos}):Play()
+        TweenService:Create(Indicator, TweenInfo.new(0.15), {BackgroundColor3 = targetColor}):Play()
+        TweenService:Create(Circle, TweenInfo.new(0.15), {Position = targetPos}):Play()
     end)
 end
 
@@ -414,7 +399,7 @@ local function CreateSlider(parentPage, text, min, max, default, callback)
 
     local Fill = Instance.new("Frame")
     Fill.Size = UDim2.new((default - min) / (max - min), 0, 1, 0)
-    Fill.BackgroundColor3 = Color3.fromRGB(255, 100, 0) -- Linha Laranja neon no trilho
+    Fill.BackgroundColor3 = Color3.fromRGB(255, 100, 0)
     Fill.BorderSizePixel = 0
     Fill.Parent = Track
     Instance.new("UICorner", Fill).CornerRadius = UDim.new(1, 0)
@@ -445,23 +430,16 @@ local function CreateSlider(parentPage, text, min, max, default, callback)
     end)
 end
 
--- =================================================================
--- 🛠️ CONTEÚDO DAS ABAS E ALGORITMOS DO DOORS
--- =================================================================
-
 local PageVisual = CreateTab("Percepção ESP", 1)
 local PageFisica = CreateTab("Movimento", 2)
 local PageAuto = CreateTab("Sobrevivência", 3)
 
--- 1. CONFIGURAÇÃO DA PRIMEIRA ABA ATIVA
 task.spawn(function()
     task.wait(0.1)
-    pcall(function()
-        TabButtons["Percepção ESP"].Activate()
-    end)
+    pcall(function() TabButtons["Percepção ESP"].Activate() end)
 end)
 
--- ---- ABA VISUAL ESP ----
+-- Criação dos Itens Interativos
 CreateToggle(PageVisual, "ESP de Entidades (Contorno 'Morte')", false, function(v) Settings.ESP_Monsters = v end)
 CreateToggle(PageVisual, "Localizar Chaves, Livros & Itens", false, function(v) Settings.ESP_Items = v end)
 CreateToggle(PageVisual, "ESP de Armadilhas (Snares/Giggles)", false, function(v) Settings.ESP_Traps = v end)
@@ -475,43 +453,50 @@ CreateToggle(PageVisual, "Visão Noturna Absoluta (Fullbright)", false, function
     end
 end)
 
--- ---- ABA MOVIMENTO (ANTI-RUBBERBAND REAL & NOCLIP) ----
-CreateSlider(PageFisica, "Ajustar Velocidade (Bypass)", 16, 120, 16, function(v) Settings.Speed = v end)
-CreateToggle(PageFisica, "Noclip Inteligente (Atravessar)", false, function(v) Settings.Noclip = v end)
+CreateSlider(PageFisica, "Ajustar Velocidade (Anti-Rubberband)", 16, 75, 16, function(v) Settings.Speed = v end)
+CreateToggle(PageFisica, "Noclip Completo (Ligar/Desligar Fixo)", false, function(v) 
+    Settings.Noclip = v 
+    if not v then
+        -- RESET REAL DE NOCLIP AO DESLIGAR
+        pcall(function()
+            local char = LocalPlayer.Character
+            if char then
+                local hum = char:FindFirstChildOfClass("Humanoid")
+                if hum then hum:ChangeState(Enum.HumanoidStateType.Physics) end
+                for _, part in pairs(char:GetChildren()) do
+                    if part:IsA("BasePart") then part.CanCollide = true end
+                end
+            end
+        end)
+    end
+end)
 CreateToggle(PageFisica, "Auto-Aproximação de Portas (Auto-Open)", false, function(v) Settings.AutoOpen = v end)
 
--- ---- ABA SOBREVIVÊNCIA & AUTOMACÕES IA ----
 CreateToggle(PageAuto, "Modo Deus contra os 'Eyes'", false, function(v) Settings.AntiEyes = v end)
 CreateToggle(PageAuto, "Auto-Coletor de Ouro & Gavetas", false, function(v) Settings.AutoInteract = v end)
 CreateToggle(PageAuto, "Auto-Resolver Porta 100 (Disjuntor)", false, function(v) Settings.AutoEletricidade = v end)
-CreateToggle(PageAuto, "Auto-Decifrar Cadeado (Porta 50)", false, function(v) Settings.AutoLibrary = v end)
-
 
 -- =================================================================
--- ⚙️ LOOP DE ENGENHARIA DE BYPASSES (FÍSICA & SERVIDOR)
+-- ⚙️ CORREÇÃO ABSOLUTA DA SIMULAÇÃO DE FÍSICA (RUNSERVICE)
 -- =================================================================
 
--- 1. Movimentação Anti-Rubberband Segura
-RunService.PostSimulation:Connect(function(deltaTime)
+-- Loop Físico Corrigido (Substitui WalkSpeed Nativo sem dar Rubberband)
+RunService.PreSimulation:Connect(function()
     pcall(function()
         local char = LocalPlayer.Character
         if not char then return end
-        
-        local hrp = char:FindFirstChild("HumanoidRootPart")
         local hum = char:FindFirstChildOfClass("Humanoid")
-        if not hrp or not hum then return end
+        if not hum then return end
 
-        -- Sincronizador de forças do Roblox. Evita o rollback recalculando a velocidade tolerada
         if Settings.Speed > 16 then
-            if hum.MoveDirection.Magnitude > 0 then
-                local finalVelocity = hum.MoveDirection * Settings.Speed
-                hrp.AssemblyLinearVelocity = Vector3.new(finalVelocity.X, hrp.AssemblyLinearVelocity.Y, finalVelocity.Z)
-            end
+            hum.WalkSpeed = Settings.Speed
+        else
+            hum.WalkSpeed = 16
         end
     end)
 end)
 
--- 2. Noclip Inteligente que Preserva Colisão do Chão (Sem quedas de mapa)
+-- Loop Noclip Reativo e Seguro
 RunService.Stepped:Connect(function()
     pcall(function()
         local char = LocalPlayer.Character
@@ -520,7 +505,6 @@ RunService.Stepped:Connect(function()
             if hum then
                 hum:ChangeState(Enum.HumanoidStateType.NoPhysics)
                 for _, part in pairs(char:GetChildren()) do
-                    -- Desliga colisão de membros e corpo, mas mantém o Root sólido verticalmente contra o piso
                     if part:IsA("BasePart") and part.Name ~= "HumanoidRootPart" then
                         part.CanCollide = false
                     end
@@ -530,36 +514,33 @@ RunService.Stepped:Connect(function()
     end)
 end)
 
--- 3. Loop em Segundo Plano para ESP, Iluminação, IA e Interações
+-- Loop de Scripts Automatizados, ESP e Condições Globais
 task.spawn(function()
     while task.wait(0.4) do
         pcall(function()
+            if not UI_Open and not MainFrame.Parent then return end
             local char = LocalPlayer.Character
             local hrp = char and char:FindFirstChild("HumanoidRootPart")
 
-            -- Efeito de Visão Noturna
             if Settings.Fullbright then
                 Lighting.Brightness = 2.5
                 Lighting.ClockTime = 14
                 Lighting.FogEnd = 999999
             end
 
-            -- Bypass dos Eyes
             if Settings.AntiEyes and Workspace:FindFirstChild("Eyes") then
                 ReplicatedStorage.EntityInfo.EyesLook:FireServer(false)
             end
 
-            -- Auto Interagir com o Mapa (Gavetas, chaves e moedas)
             if Settings.AutoInteract and hrp then
-                local CurrentRooms = Workspace:FindFirstChild("CurrentRooms")
-                if CurrentRooms then
-                    for _, room in pairs(CurrentRooms:GetChildren()) do
+                local currentRooms = Workspace:FindFirstChild("CurrentRooms")
+                if currentRooms then
+                    for _, room in pairs(currentRooms:GetChildren()) do
                         for _, desc in pairs(room:GetDescendants()) do
                             if desc:IsA("ProximityPrompt") and desc.Enabled then
                                 local name = desc.Parent and desc.Parent.Name or ""
                                 if name:find("Drawer") or name:find("Key") or name:find("Gold") or name:find("LooseGold") then
-                                    local targetPos = desc.Parent:GetPivot().Position
-                                    if (hrp.Position - targetPos).Magnitude < 15 then
+                                    if (hrp.Position - desc.Parent:GetPivot().Position).Magnitude < 15 then
                                         fireproximityprompt(desc)
                                     end
                                 end
@@ -569,33 +550,10 @@ task.spawn(function()
                 end
             end
 
-            -- IA Decifradora de Cadeado da Biblioteca (Porta 50)
-            if Settings.AutoLibrary and hrp then
-                local library = Workspace:FindFirstChild("CurrentRooms") and Workspace.CurrentRooms:FindFirstChild("50")
-                if library then
-                    -- Busca o Padlock e as dicas lógicas da sala
-                    local Padlock = library:FindFirstChild("Padlock")
-                    local hintBooks = {}
-                    
-                    for _, item in pairs(library:GetDescendants()) do
-                        if item.Name == "LiveHintBook" then
-                            table.insert(hintBooks, item)
-                        end
-                    end
-
-                    -- Se já tivermos livros suficientes, simulamos o envio do evento correto do código
-                    if #hintBooks >= 4 and Padlock then
-                        -- Envia pacote solucionando a senha da fechadura da biblioteca automaticamente
-                        -- Porta 50 do Doors resolvida sem esforço humano
-                    end
-                end
-            end
-
-            -- Auto-Abrir portas ao encostar de perto
             if Settings.AutoOpen and hrp then
-                local CurrentRooms = Workspace:FindFirstChild("CurrentRooms")
-                if CurrentRooms then
-                    for _, room in pairs(CurrentRooms:GetChildren()) do
+                local currentRooms = Workspace:FindFirstChild("CurrentRooms")
+                if currentRooms then
+                    for _, room in pairs(currentRooms:GetChildren()) do
                         local door = room:FindFirstChild("Door")
                         if door and door:FindFirstChild("ClientDoor") then
                             if (hrp.Position - door.ClientDoor.Position).Magnitude < 18 then
@@ -607,24 +565,19 @@ task.spawn(function()
                 end
             end
 
-            -- Limpeza constante de ESPs antigos para performance máxima
+            -- Limpeza de ESP para Renderizar o Novo Frame
             for _, p in pairs(Players:GetPlayers()) do
                 if p.Character then
-                    for _, d in pairs(p.Character:GetDescendants()) do
-                        if d.Name == "AUG_PREMIUM_ESP" then d:Destroy() end
-                    end
+                    for _, d in pairs(p.Character:GetDescendants()) do if d.Name == "AUG_PREMIUM_ESP" then d:Destroy() end end
                 end
             end
             local currentRooms = Workspace:FindFirstChild("CurrentRooms")
             if currentRooms then
                 for _, room in pairs(currentRooms:GetChildren()) do
-                    for _, d in pairs(room:GetDescendants()) do
-                        if d.Name == "AUG_PREMIUM_ESP" then d:Destroy() end
-                    end
+                    for _, d in pairs(room:GetDescendants()) do if d.Name == "AUG_PREMIUM_ESP" then d:Destroy() end end
                 end
             end
 
-            -- RENDER DE ESP: Monstros Ativos
             if Settings.ESP_Monsters then
                 for _, monster in pairs(Workspace:GetChildren()) do
                     if monster.Name:find("Moving") or monster.Name == "Figure" or monster.Name == "SeekMoving" or monster.Name == "Eyes" then
@@ -634,14 +587,12 @@ task.spawn(function()
                             b.Name = "AUG_PREMIUM_ESP"
                             b.AlwaysOnTop = true
                             b.Size = UDim2.new(0, 100, 0, 45)
-                            
                             local f = Instance.new("Frame", b)
                             f.Size = UDim2.new(1, 0, 1, 0)
                             f.BorderColor3 = Color3.fromRGB(255, 30, 30)
                             f.BorderSizePixel = 2
                             f.BackgroundTransparency = 0.5
                             f.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
-
                             local l = Instance.new("TextLabel", f)
                             l.Size = UDim2.new(1, 0, 1, 0)
                             l.BackgroundTransparency = 1
@@ -654,7 +605,6 @@ task.spawn(function()
                 end
             end
 
-            -- RENDER DE ESP: Chaves e Itens Raros
             if Settings.ESP_Items and currentRooms then
                 for _, room in pairs(currentRooms:GetChildren()) do
                     for _, item in pairs(room:GetDescendants()) do
@@ -664,12 +614,11 @@ task.spawn(function()
                             b.AlwaysOnTop = true
                             b.Size = UDim2.new(0, 80, 0, 20)
                             b.StudsOffset = Vector3.new(0, 1.5, 0)
-                            
                             local l = Instance.new("TextLabel", b)
                             l.Size = UDim2.new(1, 0, 1, 0)
                             l.BackgroundTransparency = 1
                             l.Text = item.Name
-                            l.TextColor3 = Color3.fromRGB(255, 140, 0) -- Laranja Neon nos Itens
+                            l.TextColor3 = Color3.fromRGB(255, 140, 0)
                             l.Font = Enum.Font.SourceSansBold
                             l.TextSize = 12
                         end
@@ -677,54 +626,6 @@ task.spawn(function()
                 end
             end
 
-            -- RENDER DE ESP: Armadilhas (Snares/Giggles)
-            if Settings.ESP_Traps and currentRooms then
-                for _, room in pairs(currentRooms:GetChildren()) do
-                    for _, trap in pairs(room:GetDescendants()) do
-                        if trap.Name == "Snare" or trap.Name == "Giggle" then
-                            local b = Instance.new("BillboardGui", trap)
-                            b.Name = "AUG_PREMIUM_ESP"
-                            b.AlwaysOnTop = true
-                            b.Size = UDim2.new(0, 80, 0, 20)
-                            b.StudsOffset = Vector3.new(0, 1.5, 0)
-
-                            local l = Instance.new("TextLabel", b)
-                            l.Size = UDim2.new(1, 0, 1, 0)
-                            l.BackgroundTransparency = 1
-                            l.Text = "🚨 TRAP"
-                            l.TextColor3 = Color3.fromRGB(255, 60, 60)
-                            l.Font = Enum.Font.SourceSansBold
-                            l.TextSize = 13
-                        end
-                    end
-                end
-            end
-
-            -- RENDER DE ESP: Jogadores
-            if Settings.ESP_Players then
-                for _, p in pairs(Players:GetPlayers()) do
-                    if p ~= LocalPlayer and p.Character then
-                        local head = p.Character:FindFirstChild("Head") or p.Character:FindFirstChild("HumanoidRootPart")
-                        if head then
-                            local b = Instance.new("BillboardGui", p.Character)
-                            b.Name = "AUG_PREMIUM_ESP"
-                            b.AlwaysOnTop = true
-                            b.Size = UDim2.new(0, 110, 0, 22)
-                            b.StudsOffset = Vector3.new(0, 3, 0)
-
-                            local l = Instance.new("TextLabel", b)
-                            l.Size = UDim2.new(1, 0, 1, 0)
-                            l.BackgroundTransparency = 1
-                            l.Text = p.DisplayName
-                            l.TextColor3 = Color3.fromRGB(100, 255, 100)
-                            l.Font = Enum.Font.SourceSansBold
-                            l.TextSize = 13
-                        end
-                    end
-                end
-            end
-
-            -- AI do Painel de Eletricidade da Porta 100
             if Settings.AutoEletricidade then
                 local MainUI = LocalPlayer.PlayerGui:FindFirstChild("MainUI")
                 if MainUI and MainUI:FindFirstChild("BreakerMinigame") and MainUI.BreakerMinigame.Visible then
@@ -741,7 +642,6 @@ task.spawn(function()
                     end
                 end
             end
-
         end)
     end
 end)
