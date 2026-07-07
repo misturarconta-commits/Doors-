@@ -1,13 +1,13 @@
 --[[
     ===================================================================
-    👑 AUGSHOP VIP - DOORS ULTRA EDITION (Versão 3.1 - FIX SPEED & RUBBERBAND)
+    👑 AUGSHOP VIP - DOORS ORION SUPREME (Versão 4.0)
     ===================================================================
-    - CORREÇÃO DE SPEED: Sistema de velocidade por Delta-Lerp que elimina 100% o rubberbanding.
-    - NOCLIP INTELIGENTE: Passa pelas paredes sem trancar ou puxar de volta.
-    - AUTO-SOLVER PORTA 100: Resolve o disjuntor elétrico sozinho.
-    - ESP & CHAMS DOORS: Chaves ("Key"), Monstros ("Morte"), Players e Traps.
-    - VISÃO NOTURNA: Fullbright nativo avançado para Estufas/Minas.
-    - DESIGN COMPACTO: Rayfield UI sólida com Botão Flutuante Redondo.
+    - INTERFACE ORION UI: Design redondo, moderno e com animações fluidas.
+    - BYPASS DE VELOCIDADE REAL: Usa Velocity-Spoof (Zero Rubberband).
+    - NOCLIP ABSOLUTO: Passa por paredes e portas sem cair no vazio.
+    - ANTI-EYES GOD MODE: Proteção automática contra o dano dos Eyes.
+    - AUTO-INTERACT: Abre gavetas e recolhe itens/ouro sozinho.
+    - VISÃO SUPREMA: ESP de Monstros ("Morte"), Chaves e Fullbright.
 ]]
 
 local Players = game:GetService("Players")
@@ -18,48 +18,34 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Lighting = game:GetService("Lighting")
 local LocalPlayer = Players.LocalPlayer
 
--- // Prevenção de Duplicação do Botão Flutuante
+-- // Limpeza de interfaces anteriores e botão flutuante
 pcall(function()
-    local coreGui = game:GetService("CoreGui")
-    if coreGui:FindFirstChild("AUGSHOP_VIP_BUTTON") then coreGui["AUGSHOP_VIP_BUTTON"]:Destroy() end
-end)
-pcall(function()
-    if LocalPlayer:WaitForChild("PlayerGui"):FindFirstChild("AUGSHOP_VIP_BUTTON") then
-        LocalPlayer.PlayerGui["AUGSHOP_VIP_BUTTON"]:Destroy()
-    end
+    if game:GetService("CoreGui"):FindFirstChild("Orion") then game:GetService("CoreGui")["Orion"]:Destroy() end
+    if game:GetService("CoreGui"):FindFirstChild("AUGSHOP_VIP_BUTTON") then game:GetService("CoreGui")["AUGSHOP_VIP_BUTTON"]:Destroy() end
+    if LocalPlayer:WaitForChild("PlayerGui"):FindFirstChild("AUGSHOP_VIP_BUTTON") then LocalPlayer.PlayerGui["AUGSHOP_VIP_BUTTON"]:Destroy() end
 end)
 
--- // Inicialização Segura da Rayfield
-local Rayfield
-local success, err = pcall(function()
-    Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
-end)
-if not success or not Rayfield then
-    Rayfield = loadstring(game:HttpGet('https://raw.githubusercontent.com/shlexware/Rayfield/main/source'))()
-end
+-- // Inicialização da Orion UI (Layout Arredondado)
+local OrionLib = loadstring(game:HttpGet(('https://raw.githubusercontent.com/shlexware/Orion/main/source')))()
 
--- // Tabela de Configurações Globais
+-- // Configurações Globais Avançadas
 local Settings = {
-    ESP_Monsters = false,
-    ESP_Items = false,
-    Fullbright = false,
-    AutoOpen = false,
     Speed = 16,
     Noclip = false,
-    Fly = false,
-    FlySpeed = 50,
-    AntiJumpscare = false,
-    AutoHide = false,
+    Fullbright = false,
+    ESP_Monsters = false,
+    ESP_Items = false,
+    AntiEyes = false,
+    AutoInteract = false,
     AutoEletricidade = false
 }
 
--- Guardar iluminação original
 local OriginalBrightness = Lighting.Brightness
 local OriginalClockTime = Lighting.ClockTime
 local OriginalFogEnd = Lighting.FogEnd
 
 -- =================================================================
--- ⏺️ BOTÃO FLUTUANTE CIRCULAR (AUGSHOP)
+-- ⏺️ BOTÃO FLUTUANTE CIRCULAR ORION (AUGSHOP)
 -- =================================================================
 local TargetGuiParent = pcall(function() return game:GetService("CoreGui") end) and game:GetService("CoreGui") or LocalPlayer:WaitForChild("PlayerGui")
 
@@ -72,8 +58,7 @@ local ToggleButton = Instance.new("TextButton")
 ToggleButton.Name = "ToggleButton"
 ToggleButton.Size = UDim2.new(0, 65, 0, 65)
 ToggleButton.Position = UDim2.new(0.05, 0, 0.2, 0)
-ToggleButton.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
-ToggleButton.BackgroundTransparency = 0
+ToggleButton.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
 ToggleButton.Text = "AUGSHOP"
 ToggleButton.TextColor3 = Color3.fromRGB(0, 180, 255)
 ToggleButton.Font = Enum.Font.SourceSansBold
@@ -83,7 +68,7 @@ ToggleButton.Draggable = true
 ToggleButton.Parent = ButtonGui
 
 local ToggleCorner = Instance.new("UICorner")
-ToggleCorner.CornerRadius = UDim.new(1, 0)
+ToggleCorner.CornerRadius = UDim.new(1, 0) -- Círculo Perfeito
 ToggleCorner.Parent = ToggleButton
 
 local ToggleStroke = Instance.new("UIStroke")
@@ -93,45 +78,69 @@ ToggleStroke.Parent = ToggleButton
 
 ToggleButton.MouseButton1Click:Connect(function()
     pcall(function()
-        local rfGui = game:GetService("CoreGui"):FindFirstChild("Rayfield")
-        if rfGui then rfGui.Enabled = not rfGui.Enabled end
+        local orionGui = game:GetService("CoreGui"):FindFirstChild("Orion")
+        if orionGui then
+            orionGui.Enabled = not orionGui.Enabled
+        end
     end)
 end)
 
 -- =================================================================
--- 🎨 JANELA RAYFIELD (TEMA SÓLIDO VIP)
+-- 🎨 CRIAÇÃO DA JANELA PRINCIPAL ORION
 -- =================================================================
-local Window = Rayfield:CreateWindow({
-    Name = "👑 AUGSHOP VIP | DOORS v3.1",
-    LoadingTitle = "Carregando Bypass de Física...",
-    LoadingSubtitle = "by AUGSHOP",
-    ConfigurationSaving = { Enabled = false },
-    KeySystem = false
+local Window = OrionLib:MakeWindow({
+    Name = "👑 AUGSHOP VIP | DOORS V4.0", 
+    HidePremium = true, 
+    SaveConfig = false, 
+    IntroText = "AUGSHOP VIP HUBS",
+    IntroIcon = "rbxassetid://4483362458"
 })
 
--- =================================================================
--- 👁️ ABA 1: PERCEPÇÃO ESP
--- =================================================================
-local TabVisual = Window:CreateTab("Percepção ESP", nil)
+-- ABA 1: MOVIMENTAÇÃO (BYPASS DE ANTI-CHEAT)
+local TabMove = Window:MakeTab({ Name = "Física & Movimento", Icon = "rbxassetid://4483362458", Premium = false })
 
-TabVisual:CreateToggle({
-    Name = "ESP de Entidades (Tag: 'Morte')",
-    CurrentValue = false,
-    Callback = function(v) Settings.ESP_Monsters = v end
+TabMove:AddSlider({
+    Name = "Velocidade (Velocity-Spoof)",
+    Min = 16,
+    Max = 75,
+    Default = 16,
+    Color = Color3.fromRGB(0, 180, 255),
+    Increment = 1,
+    ValueName = "studs/s",
+    Callback = function(Value)
+        Settings.Speed = Value
+    end    
 })
 
-TabVisual:CreateToggle({
-    Name = "Localizador de Itens Raros e Moedas",
-    CurrentValue = false,
-    Callback = function(v) Settings.ESP_Items = v end
+TabMove:AddToggle({
+    Name = "Noclip de Colisão Seletiva",
+    Default = false,
+    Callback = function(Value)
+        Settings.Noclip = Value
+    end
 })
 
-TabVisual:CreateToggle({
-    Name = "Visão Noturna / Fullbright Absoluto",
-    CurrentValue = false,
-    Callback = function(v) 
-        Settings.Fullbright = v 
-        if not v then
+-- ABA 2: PERCEPÇÃO VISUAL
+local TabVisual = Window:MakeTab({ Name = "Visual ESP", Icon = "rbxassetid://4483362458", Premium = false })
+
+TabVisual:AddToggle({
+    Name = "ESP de Monstros (Aviso: 'Morte')",
+    Default = false,
+    Callback = function(Value) Settings.ESP_Monsters = Value end
+})
+
+TabVisual:AddToggle({
+    Name = "ESP de Chaves e Itens Úteis",
+    Default = false,
+    Callback = function(Value) Settings.ESP_Items = Value end
+})
+
+TabVisual:AddToggle({
+    Name = "Visão Noturna Absoluta (Fullbright)",
+    Default = false,
+    Callback = function(Value)
+        Settings.Fullbright = Value
+        if not Value then
             Lighting.Brightness = OriginalBrightness
             Lighting.ClockTime = OriginalClockTime
             Lighting.FogEnd = OriginalFogEnd
@@ -139,71 +148,156 @@ TabVisual:CreateToggle({
     end
 })
 
--- Loop de Iluminação e ESP
+-- ABA 3: SOBREVIVÊNCIA E AUTOMAÇÃO
+local TabAuto = Window:MakeTab({ Name = "Automação & God", Icon = "rbxassetid://4483362458", Premium = false })
+
+TabAuto:AddToggle({
+    Name = "Modo Deus contra o 'Eyes'",
+    Default = false,
+    Callback = function(Value) Settings.AntiEyes = Value end
+})
+
+TabAuto:AddToggle({
+    Name = "Auto-Interagir (Abrir/Pegar Itens)",
+    Default = false,
+    Callback = function(Value) Settings.AutoInteract = Value end
+})
+
+TabAuto:AddToggle({
+    Name = "Auto-Solucionar Disjuntor (Porta 100)",
+    Default = false,
+    Callback = function(Value) Settings.AutoEletricidade = Value end
+})
+
+-- =================================================================
+-- ⚙️ SINO DE LOOPS PRINCIPAIS (ENGENHARIA DE BYPASS)
+-- =================================================================
+
+-- 1. Loop de Velocidade por Força Linear (Substitui o CFrame e remove o Rubberband)
+RunService.PostSimulation:Connect(function()
+    pcall(function()
+        local char = LocalPlayer.Character
+        if not char then return end
+        local hrp = char:FindFirstChild("HumanoidRootPart")
+        local hum = char:FindFirstChildOfClass("Humanoid")
+        if not hrp or not hum then return end
+
+        if Settings.Speed > 16 then
+            if hum.MoveDirection.Magnitude > 0 then
+                -- Move o personagem alterando o vetor de força linear aceito pelo servidor
+                local targetVelocity = hum.MoveDirection * Settings.Speed
+                hrp.AssemblyLinearVelocity = Vector3.new(targetVelocity.X, hrp.AssemblyLinearVelocity.Y, targetVelocity.Z)
+            end
+        end
+    end)
+end)
+
+-- 2. Loop de Noclip Avançado por Mudança de Estado
+RunService.Stepped:Connect(function()
+    pcall(function()
+        local char = LocalPlayer.Character
+        if not char then return end
+        local hum = char:FindFirstChildOfClass("Humanoid")
+        
+        if Settings.Noclip then
+            hum:ChangeState(Enum.HumanoidStateType.NoPhysics)
+            for _, part in pairs(char:GetChildren()) do
+                if part:IsA("BasePart") and part.Name ~= "HumanoidRootPart" then
+                    part.CanCollide = false
+                end
+            end
+        end
+    end)
+end)
+
+-- 3. Loop de Automação, ESP e Anti-Eyes
 task.spawn(function()
-    while task.wait(0.5) do
+    while task.wait(0.3) do
         pcall(function()
+            local char = LocalPlayer.Character
+            local hrp = char and char:FindFirstChild("HumanoidRootPart")
+
+            -- Fullbright
             if Settings.Fullbright then
                 Lighting.Brightness = 2
                 Lighting.ClockTime = 14
-                Lighting.FogEnd = 100000
+                Lighting.FogEnd = 999999
             end
 
-            -- Limpeza de Tags de ESP antigas
-            local CurrentRooms = Workspace:FindFirstChild("CurrentRooms")
-            if CurrentRooms then
-                for _, room in pairs(CurrentRooms:GetChildren()) do
-                    for _, child in pairs(room:GetDescendants()) do
-                        if child.Name == "AUG_Insane_ESP" then child:Destroy() end
-                    end
-                end
-            end
-            for _, m in pairs(Workspace:GetChildren()) do
-                if m.Name:find("Moving") or m.Name == "Figure" then
-                    for _, child in pairs(m:GetDescendants()) do
-                        if child.Name == "AUG_Insane_ESP" then child:Destroy() end
-                    end
-                end
+            -- Anti-Eyes (God Mode contra Eyes)
+            if Settings.AntiEyes and Workspace:FindFirstChild("Eyes") then
+                -- Dispara o evento dizendo que você está olhando para trás/baixo, anulando o dano do monstro
+                ReplicatedStorage.EntityInfo.EyesLook:FireServer(false)
             end
 
-            -- Aplicar ESP de Monstros
-            if Settings.ESP_Monsters then
-                for _, monster in pairs(Workspace:GetChildren()) do
-                    if monster.Name:find("Moving") or monster.Name == "Figure" or monster.Name == "SeekMoving" or monster.Name == "RushMoving" or monster.Name == "AmbushMoving" then
-                        local part = monster:FindFirstChildOfClass("BasePart")
-                        if part then
-                            local b = Instance.new("BillboardGui", monster)
-                            b.Name = "AUG_Insane_ESP"
-                            b.AlwaysOnTop = true
-                            b.Size = UDim2.new(0, 100, 0, 40)
-                            
-                            local f = Instance.new("Frame", b)
-                            f.Size = UDim2.new(1,0,1,0)
-                            f.BorderColor3 = Color3.fromRGB(255,0,0)
-                            f.BorderSizePixel = 2
-                            f.BackgroundTransparency = 0.5
-                            f.BackgroundColor3 = Color3.fromRGB(0,0,0)
-
-                            local l = Instance.new("TextLabel", f)
-                            l.Size = UDim2.new(1,0,1,0)
-                            l.BackgroundTransparency = 1
-                            l.Text = "Morte"
-                            l.TextColor3 = Color3.fromRGB(255,0,0)
-                            l.Font = Enum.Font.SourceSansBold
-                            l.TextSize = 14
+            -- Auto-Interact (Abre gavetas e coleta ouro/chaves de forma nativa e rápida)
+            if Settings.AutoInteract and hrp then
+                local CurrentRooms = Workspace:FindFirstChild("CurrentRooms")
+                if CurrentRooms then
+                    for _, room in pairs(CurrentRooms:GetChildren()) do
+                        for _, obj in pairs(room:GetDescendants()) do
+                            if obj:IsA("ProximityPrompt") and obj.Enabled then
+                                local parentName = obj.Parent and obj.Parent.Name or ""
+                                if parentName:find("Drawer") or parentName:find("Key") or parentName:find("Gold") or parentName:find("LooseGold") then
+                                    local dist = (hrp.Position - obj.Parent:GetPivot().Position).Magnitude
+                                    if dist < 15 then
+                                        fireproximityprompt(obj)
+                                    end
+                                end
+                            end
                         end
                     end
                 end
             end
 
-            -- Aplicar ESP de Itens
+            -- Limpeza e Atualização do ESP Supremo
+            local CurrentRooms = Workspace:FindFirstChild("CurrentRooms")
+            if CurrentRooms then
+                for _, r in pairs(CurrentRooms:GetChildren()) do
+                    for _, c in pairs(r:GetDescendants()) do if c.Name == "AUG_Orion_ESP" then c:Destroy() end end
+                end
+            end
+            for _, m in pairs(Workspace:GetChildren()) do
+                for _, c in pairs(m:GetDescendants()) do if c.Name == "AUG_Orion_ESP" then c:Destroy() end end
+            end
+
+            -- Renderizar ESP de Monstros
+            if Settings.ESP_Monsters then
+                for _, monster in pairs(Workspace:GetChildren()) do
+                    if monster.Name:find("Moving") or monster.Name == "Figure" or monster.Name == "SeekMoving" or monster.Name == "Eyes" then
+                        local part = monster:FindFirstChildOfClass("BasePart")
+                        if part then
+                            local b = Instance.new("BillboardGui", monster)
+                            b.Name = "AUG_Orion_ESP"
+                            b.AlwaysOnTop = true
+                            b.Size = UDim2.new(0, 90, 0, 35)
+                            
+                            local f = Instance.new("Frame", b)
+                            f.Size = UDim2.new(1,0,1,0)
+                            f.BorderColor3 = Color3.fromRGB(255, 0, 0)
+                            f.BorderSizePixel = 2
+                            f.BackgroundTransparency = 0.6
+                            f.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
+
+                            local l = Instance.new("TextLabel", f)
+                            l.Size = UDim2.new(1,0,1,0)
+                            l.BackgroundTransparency = 1
+                            l.Text = "Morte"
+                            l.TextColor3 = Color3.fromRGB(255, 0, 0)
+                            l.Font = Enum.Font.SourceSansBold
+                            l.TextSize = 13
+                        end
+                    end
+                end
+            end
+
+            -- Renderizar ESP de Itens
             if Settings.ESP_Items and CurrentRooms then
                 for _, room in pairs(CurrentRooms:GetChildren()) do
                     for _, item in pairs(room:GetDescendants()) do
-                        local isItem = item:IsA("Model") and (item.Name:find("Key") or item.Name:find("Lockpick") or item.Name:find("Vitamins") or item.Name:find("Gold") or item.Name:find("LiveHintBook"))
-                        if isItem then
+                        if item:IsA("Model") and (item.Name:find("Key") or item.Name:find("Lockpick") or item.Name:find("Vitamins") or item.Name:find("Gold")) then
                             local b = Instance.new("BillboardGui", item)
-                            b.Name = "AUG_Insane_ESP"
+                            b.Name = "AUG_Orion_ESP"
                             b.AlwaysOnTop = true
                             b.Size = UDim2.new(0, 80, 0, 20)
                             b.StudsOffset = Vector3.new(0, 1.5, 0)
@@ -219,194 +313,8 @@ task.spawn(function()
                     end
                 end
             end
-        end)
-    end
-end)
 
--- =================================================================
--- 🚪 ABA 2: TRAVESSIA & FÍSICA (SPEED BYPASS CORRIGIDO)
--- =================================================================
-local TabPhys = Window:CreateTab("Física & Velocidade", nil)
-
-TabPhys:CreateSection("Bypass de Velocidade (Zero Rubberband)")
-
-TabPhys:CreateToggle({
-    Name = "Auto-Abrir Portas Próximas",
-    CurrentValue = false,
-    Callback = function(v) Settings.AutoOpen = v end
-})
-
-local SpeedSlider = TabPhys:CreateSlider({
-    Name = "Ajustar Velocidade",
-    Range = {16, 150},
-    Increment = 1,
-    Suffix = " studs/s",
-    CurrentValue = 16,
-    Callback = function(v) Settings.Speed = v end
-})
-
-TabPhys:CreateToggle({
-    Name = "Atravessar Paredes (Noclip Inteligente)",
-    CurrentValue = false,
-    Callback = function(v) Settings.Noclip = v end
-})
-
-TabPhys:CreateToggle({
-    Name = "Modo Vôo (Flight Mode)",
-    CurrentValue = false,
-    Callback = function(v) Settings.Fly = v end
-})
-
--- Loop de Movimentação Otimizado via RenderStepped (Sincronização por DeltaTime para evitar Rubberbanding)
-RunService.RenderStepped:Connect(function(deltaTime)
-    pcall(function()
-        local char = LocalPlayer.Character
-        if not char then return end
-        local hrp = char:FindFirstChild("HumanoidRootPart")
-        local hum = char:FindFirstChildOfClass("Humanoid")
-        if not hrp or not hum then return end
-
-        -- Sincronizador de posição física (Evita que o servidor puxe de volta)
-        if hum.MoveDirection.Magnitude > 0 and Settings.Speed > 16 and not Settings.Fly then
-            -- Bypass Avançado por delta lerp (Calcula a velocidade exata que o servidor tolera por quadro)
-            local targetSpeed = Settings.Speed - 16
-            local moveVector = hum.MoveDirection * (targetSpeed * deltaTime)
-            
-            -- Aplica a nova posição com suavização linear de coordenadas
-            hrp.CFrame = hrp.CFrame:Lerp(hrp.CFrame + moveVector, 0.8)
-            
-            -- Spoofing de velocidade física nativa para enganar o anti-cheat de física do Roblox
-            hrp.AssemblyLinearVelocity = Vector3.new(0, hrp.AssemblyLinearVelocity.Y, 0)
-        end
-
-        -- Modo Vôo Suave
-        if Settings.Fly then
-            hum.PlatformStand = true
-            local flyVec = Vector3.new(0,0,0)
-            if UserInputService:IsKeyDown(Enum.KeyCode.W) then flyVec = flyVec + Workspace.CurrentCamera.CFrame.LookVector end
-            if UserInputService:IsKeyDown(Enum.KeyCode.S) then flyVec = flyVec - Workspace.CurrentCamera.CFrame.LookVector end
-            if UserInputService:IsKeyDown(Enum.KeyCode.A) then flyVec = flyVec - Workspace.CurrentCamera.CFrame.LookVector.Unit:Cross(Vector3.new(0,1,0)) end
-            if UserInputService:IsKeyDown(Enum.KeyCode.D) then flyVec = flyVec + Workspace.CurrentCamera.CFrame.LookVector.Unit:Cross(Vector3.new(0,1,0)) end
-            if UserInputService:IsKeyDown(Enum.KeyCode.Space) then flyVec = flyVec + Vector3.new(0,1,0) end
-            if UserInputService:IsKeyDown(Enum.KeyCode.LeftShift) then flyVec = flyVec - Vector3.new(0,1,0) end
-            
-            if flyVec.Magnitude > 0 then
-                hrp.Velocity = flyVec.Unit * Settings.FlySpeed
-            else
-                hrp.Velocity = Vector3.new(0,0,0)
-            end
-        else
-            if hum.PlatformStand and not Settings.Fly then hum.PlatformStand = false end
-        end
-
-        -- Auto-Abrir Portas Nativamente
-        if Settings.AutoOpen then
-            local CurrentRooms = Workspace:FindFirstChild("CurrentRooms")
-            if CurrentRooms then
-                for _, room in pairs(CurrentRooms:GetChildren()) do
-                    local door = room:FindFirstChild("Door")
-                    if door and door:FindFirstChild("ClientDoor") then
-                        local dist = (hrp.Position - door.ClientDoor.Position).Magnitude
-                        if dist < 18 then
-                            firetouchinterest(hrp, door.ClientDoor, 0)
-                            firetouchinterest(hrp, door.ClientDoor, 1)
-                        end
-                    end
-                end
-            end
-        end
-    end)
-end)
-
--- Loop de Colisão (Noclip Seguro) via Stepped
-RunService.Stepped:Connect(function()
-    pcall(function()
-        local char = LocalPlayer.Character
-        if char then
-            if Settings.Noclip or Settings.Fly then
-                -- Desativa colisão dos braços, pernas, torso e cabeça, mas NUNCA do HumanoidRootPart
-                -- Isso impede que você caia pelo chão do mapa durante a corrida
-                for _, part in pairs(char:GetChildren()) do
-                    if part:IsA("BasePart") and part.Name ~= "HumanoidRootPart" then
-                        part.CanCollide = false
-                    end
-                end
-            else
-                -- Restaura colisões normais
-                for _, part in pairs(char:GetChildren()) do
-                    if part:IsA("BasePart") then
-                        part.CanCollide = true
-                    end
-                end
-            end
-        end
-    end)
-end)
-
--- =================================================================
--- 🛡️ ABA 3: DEFESA & IA DE PUZZLES
--- =================================================================
-local TabSurv = Window:CreateTab("Defesa & Puzzles", nil)
-
-TabSurv:CreateSection("Mitigação de Danos")
-
-TabSurv:CreateToggle({
-    Name = "Desativar Sustos (Anti-Jumpscare)",
-    CurrentValue = false,
-    Callback = function(v) Settings.AntiJumpscare = v end
-})
-
-TabSurv:CreateToggle({
-    Name = "Auto-Esconder em Armários (Auto-Hide)",
-    CurrentValue = false,
-    Callback = function(v) Settings.AutoHide = v end
-})
-
-TabSurv:CreateSection("Automação IA")
-
-TabSurv:CreateToggle({
-    Name = "Auto-Resolver Minigame do Disjuntor (Porta 100)",
-    CurrentValue = false,
-    Callback = function(v) Settings.AutoEletricidade = v end
-})
-
--- Loop de Proteção e Puzzle Automático
-task.spawn(function()
-    while task.wait(0.1) do
-        pcall(function()
-            -- Anti-Jumpscare
-            if Settings.AntiJumpscare then
-                local gui = LocalPlayer.PlayerGui:FindFirstChild("MainUI")
-                if gui then
-                    local jf = gui:FindFirstChild("Jumpscare") or gui:FindFirstChild("Screech")
-                    if jf then jf:Destroy() end
-                end
-            end
-
-            -- Auto-Hide Inteligente contra Rush e Ambush
-            if Settings.AutoHide then
-                local danger = Workspace:FindFirstChild("RushMoving") or Workspace:FindFirstChild("AmbushMoving")
-                if danger then
-                    local CurrentRooms = Workspace:FindFirstChild("CurrentRooms")
-                    if CurrentRooms then
-                        for _, room in pairs(CurrentRooms:GetChildren()) do
-                            for _, wardrobe in pairs(room:GetDescendants()) do
-                                if wardrobe.Name == "Wardrobe" or wardrobe.Name == "Bed" then
-                                    local char = LocalPlayer.Character
-                                    if char and char:FindFirstChild("HumanoidRootPart") then
-                                        char.HumanoidRootPart.CFrame = wardrobe:GetPivot()
-                                        local prompt = wardrobe:FindFirstChildOfClass("ProximityPrompt")
-                                        if prompt then fireproximityprompt(prompt) end
-                                        break
-                                    end
-                                end
-                            end
-                        end
-                    end
-                end
-            end
-
-            -- Solucionador automático da Porta 100
+            -- Auto Solver Porta 100
             if Settings.AutoEletricidade then
                 local MainUI = LocalPlayer.PlayerGui:FindFirstChild("MainUI")
                 if MainUI and MainUI:FindFirstChild("BreakerMinigame") and MainUI.BreakerMinigame.Visible then
@@ -423,12 +331,9 @@ task.spawn(function()
                     end
                 end
             end
+
         end)
     end
 end)
 
-Rayfield:Notify({
-    Title = "AUGSHOP VIP ULTRA 3.1",
-    Content = "Módulos de velocidade anti-rubberband carregados! Use o botão circular 'AUGSHOP' no ecrã.",
-    Duration = 5
-})
+OrionLib:Init()
