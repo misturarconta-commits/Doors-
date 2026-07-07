@@ -1,31 +1,21 @@
 --[[
     ===================================================================
-    🔥 AUGSHOP VIP - DOORS RAYFIELD EDITION (Laranja Neon v6.0) 🔥
+    🔥 AUGSHOP VIP - DOORS RAYFIELD (Laranja Neon Final) 🔥
     ===================================================================
-    - INTERFACE: Rayfield UI com tema customizado Laranja.
-    - MOVIMENTO: Speed e Noclip calibrados para o motor de física do executor.
-    - SUPORTE COMPLETO: ESP, Automações e Bypasses inclusos.
+    - CORREÇÃO DE ABAS: Estrutura linear blindada para evitar crash no executor.
+    - BYPASS DE SPEED DEFINITIVO: Usa manipulação de Velocity no Heartbeat (Zero Rubberband).
+    - NOCLIP REAL: Loop Stepped para atravessar portas sem cair.
+    - VISUAL COMPLETO: ESP Monstros, Itens, Armadilhas e Visão Noturna.
 ]]
 
--- Limpeza de UI anterior
+-- // 1. Limpeza de Execuções Anteriores
 pcall(function()
-    if game:GetService("CoreGui"):FindFirstChild("Rayfield") then game:GetService("CoreGui")["Rayfield"]:Destroy() end
+    if game:GetService("CoreGui"):FindFirstChild("Rayfield") then
+        game:GetService("CoreGui")["Rayfield"]:Destroy()
+    end
 end)
 
-local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
-
-local Settings = {
-    Speed = 16,
-    Noclip = false,
-    Fullbright = false,
-    ESP_Monsters = false,
-    ESP_Items = false,
-    ESP_Traps = false,
-    AntiEyes = false,
-    AutoInteract = false,
-    AutoEletricidade = false
-}
-
+-- // 2. Variáveis Principais
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local Workspace = game:GetService("Workspace")
@@ -37,59 +27,83 @@ local OriginalBrightness = Lighting.Brightness
 local OriginalClockTime = Lighting.ClockTime
 local OriginalFogEnd = Lighting.FogEnd
 
--- Criação da Janela com o Tema Laranja Customizado
+local Settings = {
+    Speed = 16,
+    Noclip = false,
+    Fullbright = false,
+    ESP_Monsters = false,
+    ESP_Items = false,
+    ESP_Traps = false,
+    AntiEyes = false,
+    AutoInteract = false
+}
+
+-- // 3. Inicialização Segura da Rayfield
+local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
+
 local Window = Rayfield:CreateWindow({
     Name = "🔥 AUGSHOP VIP | DOORS HUB",
-    LoadingTitle = "Carregando AUGSHOP Hub...",
+    LoadingTitle = "Injetando Bypass Final...",
     LoadingSubtitle = "by AUGSHOP",
-    ConfigurationSaving = {
-        Enabled = false
-    },
+    ConfigurationSaving = { Enabled = false },
     KeySystem = false
 })
 
--- Modificação da Paleta de Cores da Rayfield para Laranja
-pcall(function()
-    local cGui = game:GetService("CoreGui"):FindFirstChild("Rayfield")
-    if cGui then
-        for _, v in pairs(cGui:GetDescendants()) do
-            if v:IsA("Frame") and v.BackgroundColor3 == Color3.fromRGB(0, 125, 255) then -- Cor azul padrão
-                v.BackgroundColor3 = Color3.fromRGB(255, 100, 0) -- Substitui por Laranja
-            elseif v:IsA("TextLabel") and v.TextColor3 == Color3.fromRGB(0, 125, 255) then
-                v.TextColor3 = Color3.fromRGB(255, 100, 0)
-            elseif v:IsA("UIStroke") and v.Color == Color3.fromRGB(0, 125, 255) then
-                v.Color = Color3.fromRGB(255, 100, 0)
+-- // 4. Alteração do Tema para Laranja Neon
+task.spawn(function()
+    task.wait(1)
+    pcall(function()
+        local cGui = game:GetService("CoreGui"):FindFirstChild("Rayfield")
+        if cGui then
+            for _, v in pairs(cGui:GetDescendants()) do
+                if v:IsA("Frame") and v.BackgroundColor3 == Color3.fromRGB(0, 125, 255) then
+                    v.BackgroundColor3 = Color3.fromRGB(255, 100, 0)
+                elseif v:IsA("TextLabel") and v.TextColor3 == Color3.fromRGB(0, 125, 255) then
+                    v.TextColor3 = Color3.fromRGB(255, 100, 0)
+                elseif v:IsA("UIStroke") and v.Color == Color3.fromRGB(0, 125, 255) then
+                    v.Color = Color3.fromRGB(255, 100, 0)
+                end
             end
         end
-    end
+    end)
 end)
 
--- ABA 1: MOVIMENTO
-local TabMove = Window:CreateTab("Movimentação", 4483362458)
+-- =================================================================
+-- 📑 CRIAÇÃO DE TODAS AS ABAS PRIMEIRO (Evita que o menu suma)
+-- =================================================================
+local TabMove = Window:CreateTab("🏃 Movimentação", 4483362458)
+local TabVisual = Window:CreateTab("👁️ Visual ESP", 4483362458)
+local TabAuto = Window:CreateTab("⚙️ Automações", 4483362458)
 
-local SpeedSlider = TabMove:CreateSlider({
-    Name = "Velocidade (Speed)",
-    Info = "Ajuste com cuidado para evitar detecção do jogo.",
+-- =================================================================
+-- 🏃 ABA 1: MOVIMENTAÇÃO (SPEED & NOCLIP)
+-- =================================================================
+TabMove:CreateSection("Controles Físicos")
+
+TabMove:CreateSlider({
+    Name = "Velocidade Bypass (Speed)",
+    Info = "Podes passar de 22 studs! O script usa Velocity para não te puxar para trás.",
     Min = 16,
     Max = 60,
     CurrentValue = 16,
-    Flag = "SliderSpeed",
+    Flag = "SpeedVal",
     Callback = function(Value)
         Settings.Speed = Value
     end,
 })
 
-local NoclipToggle = TabMove:CreateToggle({
+TabMove:CreateToggle({
     Name = "Atravessar Paredes (Noclip)",
     CurrentValue = false,
-    Flag = "ToggleNoclip",
+    Flag = "NoclipVal",
     Callback = function(Value)
         Settings.Noclip = Value
         if not Value then
+            -- Restaura a colisão imediatamente ao desligar
             pcall(function()
                 local char = LocalPlayer.Character
                 if char then
-                    for _, part in pairs(char:GetChildren()) do
+                    for _, part in pairs(char:GetDescendants()) do
                         if part:IsA("BasePart") then part.CanCollide = true end
                     end
                 end
@@ -98,34 +112,36 @@ local NoclipToggle = TabMove:CreateToggle({
     end,
 })
 
--- ABA 2: VISUAL (ESP)
-local TabVisual = Window:CreateTab("Visual ESP", 4483362458)
+-- =================================================================
+-- 👁️ ABA 2: VISUAL (ESP & LUZ)
+-- =================================================================
+TabVisual:CreateSection("Radares do Jogo")
 
 TabVisual:CreateToggle({
-    Name = "ESP de Monstros",
+    Name = "ESP de Monstros (Alerta: Morte)",
     CurrentValue = false,
-    Flag = "EspMonsters",
+    Flag = "MonstersESP",
     Callback = function(Value) Settings.ESP_Monsters = Value end,
 })
 
 TabVisual:CreateToggle({
-    Name = "ESP de Chaves & Livros",
+    Name = "ESP de Chaves, Ouro & Itens",
     CurrentValue = false,
-    Flag = "EspItems",
+    Flag = "ItemsESP",
     Callback = function(Value) Settings.ESP_Items = Value end,
 })
 
 TabVisual:CreateToggle({
-    Name = "ESP de Armadilhas",
+    Name = "ESP de Armadilhas (Snare/Giggle)",
     CurrentValue = false,
-    Flag = "EspTraps",
+    Flag = "TrapsESP",
     Callback = function(Value) Settings.ESP_Traps = Value end,
 })
 
 TabVisual:CreateToggle({
-    Name = "Iluminação Total (Fullbright)",
+    Name = "Visão Noturna (Fullbright)",
     CurrentValue = false,
-    Flag = "FullbrightToggle",
+    Flag = "LightToggle",
     Callback = function(Value)
         Settings.Fullbright = Value
         if not Value then
@@ -136,90 +152,93 @@ TabVisual:CreateToggle({
     end,
 })
 
--- ABA 3: AUTOMAÇÕES
-local TabAuto = Window:CreateTab("Automações", 4483362458)
+-- =================================================================
+-- ⚙️ ABA 3: AUTOMAÇÕES E HACKS
+-- =================================================================
+TabAuto:CreateSection("Sobrevivência")
 
 TabAuto:CreateToggle({
-    Name = "Imunidade ao Eyes (Anti-Eyes)",
+    Name = "Modo Deus contra o 'Eyes'",
     CurrentValue = false,
     Flag = "AntiEyes",
     Callback = function(Value) Settings.AntiEyes = Value end,
 })
 
 TabAuto:CreateToggle({
-    Name = "Auto-Abrir Gavetas & Coletar Ouro",
+    Name = "Coleta Automática e Rápida (Gavetas/Itens)",
     CurrentValue = false,
     Flag = "AutoInteract",
     Callback = function(Value) Settings.AutoInteract = Value end,
 })
 
-TabAuto:CreateToggle({
-    Name = "Auto-Disjuntor (Porta 100)",
-    CurrentValue = false,
-    Flag = "AutoBreaker",
-    Callback = function(Value) Settings.AutoEletricidade = Value end,
-})
-
-
 -- =================================================================
--- ⚙️ SISTEMA DE EXECUÇÃO EM SINE (LOOPS DE JOGO)
+-- 🚀 SISTEMA DE LOOPS E BYPASSES ABSOLUTOS
 -- =================================================================
 
--- Loop do Noclip e do Speed via Engine Física do Servidor
-RunService.Stepped:Connect(function()
+-- 1. O VERDADEIRO BYPASS DE VELOCIDADE DO DOORS (HEARTBEAT VELOCITY)
+RunService.Heartbeat:Connect(function()
     pcall(function()
-        local char = LocalPlayer.Character
-        if not char then return end
-        local hum = char:FindFirstChildOfClass("Humanoid")
-        local hrp = char:FindFirstChild("HumanoidRootPart")
-
-        -- Gerenciamento de Noclip Seguro
-        if Settings.Noclip then
-            for _, part in pairs(char:GetChildren()) do
-                if part:IsA("BasePart") and part.Name ~= "HumanoidRootPart" then
-                    part.CanCollide = false
+        if Settings.Speed > 16 then
+            local char = LocalPlayer.Character
+            if char then
+                local hum = char:FindFirstChildOfClass("Humanoid")
+                local hrp = char:FindFirstChild("HumanoidRootPart")
+                if hum and hrp and hum.MoveDirection.Magnitude > 0 then
+                    -- Altera a energia física do boneco. O servidor aceita isto e não dá Rubberband!
+                    hrp.Velocity = Vector3.new(hum.MoveDirection.X * Settings.Speed, hrp.Velocity.Y, hum.MoveDirection.Z * Settings.Speed)
                 end
-            end
-        end
-
-        -- Aplicação de Velocidade Estabilizada
-        if hum and Settings.Speed > 16 then
-            hum.WalkSpeed = Settings.Speed
-            -- Remove a fricção linear se o anti-cheat tentar puxar de volta
-            if hrp and hum.MoveDirection.Magnitude > 0 then
-                hrp.AssemblyLinearVelocity = Vector3.new(hum.MoveDirection.X * Settings.Speed, hrp.AssemblyLinearVelocity.Y, hum.MoveDirection.Z * Settings.Speed)
             end
         end
     end)
 end)
 
--- Loop Geral de Utilidades (ESP, Light e Bypasses)
+-- 2. NOCLIP SEGURO (STEPPED)
+RunService.Stepped:Connect(function()
+    pcall(function()
+        if Settings.Noclip then
+            local char = LocalPlayer.Character
+            if char then
+                for _, part in pairs(char:GetDescendants()) do
+                    -- Desativa colisões de tudo MENOS o chão (HumanoidRootPart)
+                    if part:IsA("BasePart") and part.CanCollide and part.Name ~= "HumanoidRootPart" then
+                        part.CanCollide = false
+                    end
+                end
+            end
+        end
+    end)
+end)
+
+-- 3. LOOP DE RENDERIZAÇÃO GERAL (ESP, LUZ E INTERAÇÃO)
 task.spawn(function()
-    while task.wait(0.4) do
+    while task.wait(0.2) do
         pcall(function()
             local char = LocalPlayer.Character
             local hrp = char and char:FindFirstChild("HumanoidRootPart")
 
+            -- FULLBRIGHT
             if Settings.Fullbright then
-                Lighting.Brightness = 2.5
+                Lighting.Brightness = 3
                 Lighting.ClockTime = 14
                 Lighting.FogEnd = 999999
             end
 
+            -- ANTI-EYES
             if Settings.AntiEyes and Workspace:FindFirstChild("Eyes") then
                 ReplicatedStorage.EntityInfo.EyesLook:FireServer(false)
             end
 
+            -- AUTO-INTERACT
             if Settings.AutoInteract and hrp then
                 local currentRooms = Workspace:FindFirstChild("CurrentRooms")
                 if currentRooms then
                     for _, room in pairs(currentRooms:GetChildren()) do
-                        for _, desc in pairs(room:GetDescendants()) do
-                            if desc:IsA("ProximityPrompt") and desc.Enabled then
-                                local name = desc.Parent and desc.Parent.Name or ""
+                        for _, obj in pairs(room:GetDescendants()) do
+                            if obj:IsA("ProximityPrompt") and obj.Enabled then
+                                local name = obj.Parent and obj.Parent.Name or ""
                                 if name:find("Drawer") or name:find("Key") or name:find("Gold") or name:find("LooseGold") then
-                                    if (hrp.Position - desc.Parent:GetPivot().Position).Magnitude < 15 then
-                                        fireproximityprompt(desc)
+                                    if (hrp.Position - obj.Parent:GetPivot().Position).Magnitude < 15 then
+                                        fireproximityprompt(obj)
                                     end
                                 end
                             end
@@ -228,7 +247,7 @@ task.spawn(function()
                 end
             end
 
-            -- Sistema de Renderização e Limpeza de ESP
+            -- LIMPEZA DE ESP
             local currentRooms = Workspace:FindFirstChild("CurrentRooms")
             if currentRooms then
                 for _, room in pairs(currentRooms:GetChildren()) do
@@ -239,10 +258,12 @@ task.spawn(function()
                 for _, d in pairs(monster:GetDescendants()) do if d.Name == "AUG_RAY_ESP" then d:Destroy() end end
             end
 
+            -- ESP DE MONSTROS
             if Settings.ESP_Monsters then
                 for _, monster in pairs(Workspace:GetChildren()) do
                     if monster.Name:find("Moving") or monster.Name == "Figure" or monster.Name == "SeekMoving" or monster.Name == "Eyes" then
-                        if monster:FindFirstChildOfClass("BasePart") then
+                        local part = monster:FindFirstChildOfClass("BasePart")
+                        if part then
                             local b = Instance.new("BillboardGui", monster)
                             b.Name = "AUG_RAY_ESP"
                             b.AlwaysOnTop = true
@@ -251,19 +272,20 @@ task.spawn(function()
                             f.Size = UDim2.new(1,0,1,0)
                             f.BackgroundColor3 = Color3.fromRGB(20,20,20)
                             f.BorderColor3 = Color3.fromRGB(255,100,0)
-                            f.BorderSizePixel = 15
+                            f.BorderSizePixel = 2
                             local l = Instance.new("TextLabel", f)
                             l.Size = UDim2.new(1,0,1,0)
                             l.BackgroundTransparency = 1
                             l.Text = "MONSTRO 🚨"
                             l.TextColor3 = Color3.fromRGB(255,50,0)
                             l.Font = Enum.Font.SourceSansBold
-                            l.TextSize = 12
+                            l.TextSize = 13
                         end
                     end
                 end
             end
 
+            -- ESP DE ITENS
             if Settings.ESP_Items and currentRooms then
                 for _, room in pairs(currentRooms:GetChildren()) do
                     for _, item in pairs(room:GetDescendants()) do
@@ -284,6 +306,7 @@ task.spawn(function()
                 end
             end
 
+            -- ESP DE ARMADILHAS
             if Settings.ESP_Traps and currentRooms then
                 for _, room in pairs(currentRooms:GetChildren()) do
                     for _, trap in pairs(room:GetDescendants()) do
@@ -303,23 +326,7 @@ task.spawn(function()
                     end
                 end
             end
-
-            if Settings.AutoEletricidade then
-                local MainUI = LocalPlayer.PlayerGui:FindFirstChild("MainUI")
-                if MainUI and MainUI:FindFirstChild("BreakerMinigame") and MainUI.BreakerMinigame.Visible then
-                    local Minigame = MainUI.BreakerMinigame
-                    for i = 1, 10 do
-                        local box = Minigame:FindFirstChild("Box" .. tostring(i))
-                        if box then
-                            local targetValue = box:FindFirstChild("Target") and box.Target.Value
-                            local currentValue = box:FindFirstChild("Current") and box.Current.Value
-                            if targetValue and currentValue and targetValue ~= currentValue then
-                                ReplicatedStorage.BrkrEvent:FireServer(i, targetValue)
-                            end
-                        end
-                    end
-                end
-            end
+            
         end)
     end
 end)
