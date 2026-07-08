@@ -1,8 +1,9 @@
 --[[
-    🔥 AUGSHOP GRATIS - DOORS RAYFIELD (Versão Grátis Ultimate v2.0) 🔥
-    - NOVAS FUNÇÕES: Alerta Rush/Ambush, Anti-Screech, Anti-Dupe e Alcance Estendido.
-    - MOVIMENTAÇÃO: Speed limitado em 22 (100% sem Rubberband) e Noclip.
-    - VISUAIS: ESP Completo (Monstros, Itens, Portas Falsas) e Fullbright.
+    🔥 AUGSHOP GRATIS - DOORS (Versão Ultimate Corrigida v3.0) 🔥
+    - PORTA VERDE/VERMELHA: ESP de portas reais (Verde) e falsas/Dupe (Vermelho).
+    - ALERTA "CUIDADO!": Aviso gigante no centro do ecrã quando monstros surgem.
+    - AUTO-INTERACT GLOBAL: Abre gavetas e pega chaves/ouro em qualquer sala do jogo.
+    - MOVIMENTAÇÃO SEGURA: Velocidade limitada a 22 studs/s para evitar rubberband.
 ]]
 
 local Players = game:GetService("Players")
@@ -10,6 +11,7 @@ local RunService = game:GetService("RunService")
 local Workspace = game:GetService("Workspace")
 local Lighting = game:GetService("Lighting")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local TweenService = game:GetService("TweenService")
 local LocalPlayer = Players.LocalPlayer
 
 -- Configurações Globais (Edição Gratuita Completa)
@@ -19,26 +21,69 @@ local Settings = {
     Fullbright = false,
     ESP_Monsters = false,
     ESP_Items = false,
-    AntiDupe = false,
+    ESP_Doors = false,
     AutoInteract = false,
     EntityNotifier = false,
     AntiScreech = false,
     ReachInteraction = false
 }
 
+local OriginalBrightness = Lighting.Brightness
+local OriginalClockTime = Lighting.ClockTime
+local OriginalFogEnd = Lighting.FogEnd
+
 -- Limpeza de interfaces anteriores
 pcall(function()
     if game:GetService("CoreGui"):FindFirstChild("Rayfield") then
         game:GetService("CoreGui").Rayfield:Destroy()
     end
+    if LocalPlayer.PlayerGui:FindFirstChild("AUG_GiantAlert") then
+        LocalPlayer.PlayerGui["AUG_GiantAlert"]:Destroy()
+    end
 end)
 
--- Carregar Rayfield UI
+-- ==========================================
+-- 🚨 CRIAÇÃO DO ALERTA GIGANTE DE TELA "CUIDADO!"
+-- ==========================================
+local AlertGui = Instance.new("ScreenGui")
+AlertGui.Name = "AUG_GiantAlert"
+AlertGui.ResetOnSpawn = false
+AlertGui.Enabled = false
+AlertGui.Parent = LocalPlayer:WaitForChild("PlayerGui")
+
+local AlertLabel = Instance.new("TextLabel")
+AlertLabel.Size = UDim2.new(1, 0, 0, 100)
+AlertLabel.Position = UDim2.new(0, 0, 0.35, 0)
+AlertLabel.BackgroundTransparency = 1
+AlertLabel.Text = "CUIDADO!"
+AlertLabel.TextColor3 = Color3.fromRGB(255, 0, 0)
+AlertLabel.TextSize = 80
+AlertLabel.Font = Enum.Font.SourceSansBold
+AlertLabel.TextStrokeTransparency = 0
+AlertLabel.TextStrokeColor3 = Color3.fromRGB(0, 0, 0)
+AlertLabel.Parent = AlertGui
+
+local function TriggerGiantAlert()
+    task.spawn(function()
+        AlertGui.Enabled = true
+        for i = 1, 10 do
+            AlertLabel.Visible = true
+            task.wait(0.25)
+            AlertLabel.Visible = false
+            task.wait(0.25)
+        end
+        AlertGui.Enabled = false
+    end)
+end
+
+-- ==========================================
+-- 🎨 INICIALIZAR RAYFIELD UI
+-- ==========================================
 local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
 
 local Window = Rayfield:CreateWindow({
     Name = "🔥 AUGSHOP GRATIS | DOORS HUB",
-    LoadingTitle = "Carregando Edição Grátis Ultimate...",
+    LoadingTitle = "Injetando Versão Grátis...",
     LoadingSubtitle = "by AUGSHOP",
     ConfigurationSaving = { Enabled = false },
     KeySystem = false
@@ -67,7 +112,7 @@ local TabMove = Window:CreateTab("🏃 Movimentação", 4483362458)
 
 TabMove:CreateSlider({
     Name = "Velocidade Segura (Speed)",
-    Info = "Limitado a 22 studs/s na versão grátis para segurança total.",
+    Info = "Limitado a 22 para segurança absoluta contra o anti-cheat.",
     Range = {16, 22},
     Increment = 1,
     CurrentValue = 16,
@@ -102,6 +147,20 @@ TabMove:CreateToggle({
 local TabVisual = Window:CreateTab("👁️ Visuais", 4483362458)
 
 TabVisual:CreateToggle({
+    Name = "ESP de Portas (Verde / Vermelho)",
+    CurrentValue = false,
+    Flag = "EspDoorsToggle",
+    Callback = function(Value)
+        Settings.ESP_Doors = Value
+        if not Value then
+            for _, v in pairs(Workspace:GetDescendants()) do
+                if v.Name == "AUG_ESP_DOOR" then v:Destroy() end
+            end
+        end
+    end,
+})
+
+TabVisual:CreateToggle({
     Name = "ESP Monstros",
     CurrentValue = false,
     Flag = "EspMonstersToggle",
@@ -130,20 +189,6 @@ TabVisual:CreateToggle({
 })
 
 TabVisual:CreateToggle({
-    Name = "Anti-Dupe (Aviso de Porta Falsa)",
-    CurrentValue = false,
-    Flag = "AntiDupeToggle",
-    Callback = function(Value)
-        Settings.AntiDupe = Value
-        if not Value then
-            for _, v in pairs(Workspace:GetDescendants()) do
-                if v.Name == "AUG_ESP_DUPE" then v:Destroy() end
-            end
-        end
-    end,
-})
-
-TabVisual:CreateToggle({
     Name = "Visão Noturna (Fullbright)",
     CurrentValue = false,
     Flag = "ToggleLight",
@@ -163,7 +208,7 @@ TabVisual:CreateToggle({
 local TabAuto = Window:CreateTab("⚙️ Automações", 4483362458)
 
 TabAuto:CreateToggle({
-    Name = "Alerta de Entidades (Rush / Ambush)",
+    Name = "Alerta de Entidades (Aviso Gigante)",
     CurrentValue = false,
     Flag = "ToggleNotifier",
     Callback = function(Value)
@@ -247,15 +292,15 @@ local function CreateESP(parentObject, title, color, espName)
             billboard.Name = espName
             billboard.Adornee = targetPart
             billboard.AlwaysOnTop = true
-            billboard.Size = UDim2.new(0, 100, 0, 30)
+            billboard.Size = UDim2.new(0, 130, 0, 30)
             billboard.Parent = targetPart
 
             local frame = Instance.new("Frame", billboard)
             frame.Size = UDim2.new(1, 0, 1, 0)
-            frame.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
-            frame.BackgroundTransparency = 0.3
+            frame.BackgroundColor3 = Color3.fromRGB(10, 10, 10)
+            frame.BackgroundTransparency = 0.25
             frame.BorderColor3 = color
-            frame.BorderSizePixel = 1
+            frame.BorderSizePixel = 1.5
 
             local label = Instance.new("TextLabel", frame)
             label.Size = UDim2.new(1, 0, 1, 0)
@@ -268,7 +313,7 @@ local function CreateESP(parentObject, title, color, espName)
     end)
 end
 
--- LOOP PRINCIPAL (AUTOMAÇÕES, VISUAIS E ALERTAS)
+-- LOOP CENTRALIZADO DE RENDERIZAÇÃO
 task.spawn(function()
     while task.wait(0.2) do
         pcall(function()
@@ -283,23 +328,17 @@ task.spawn(function()
                 Lighting.FogEnd = 999999
             end
 
-            -- 2. ALERTA DE ENTIDADES (RUSH / AMBUSH)
+            -- 2. ALERTA GIGANTE DE MONSTROS
             if Settings.EntityNotifier then
                 for _, obj in pairs(Workspace:GetChildren()) do
                     if (obj.Name == "RushMoving" or obj.Name == "AmbushMoving") and not obj:FindFirstChild("AUG_Notified") then
-                        local tag = Instance.new("BoolValue", obj)
-                        tag.Name = "AUG_Notified"
-                        Rayfield:Notify({
-                            Title = "🚨 PERIGO DETETADO!",
-                            Content = (obj.Name:find("Rush") and "Rush" or "Ambush") .. " está vindo! ESCONDA-SE!",
-                            Duration = 5,
-                            Image = 4483362458,
-                        })
+                        Instance.new("BoolValue", obj).Name = "AUG_Notified"
+                        TriggerGiantAlert()
                     end
                 end
             end
 
-            -- 3. ANTI-SCREECH (OLHAR AUTOMÁTICO)
+            -- 3. ANTI-SCREECH
             if Settings.AntiScreech then
                 local screech = camera:FindFirstChild("Screech") or Workspace:FindFirstChild("Screech")
                 if screech then
@@ -310,34 +349,29 @@ task.spawn(function()
                 end
             end
 
-            -- 4. ALCANCE ESTENDIDO (REACH)
+            -- 4. ALCANCE DE INTERAÇÃO (REACH)
             if Settings.ReachInteraction then
-                local currentRooms = Workspace:FindFirstChild("CurrentRooms")
-                if currentRooms then
-                    for _, room in pairs(currentRooms:GetChildren()) do
-                        for _, desc in pairs(room:GetDescendants()) do
-                            if desc:IsA("ProximityPrompt") then
-                                desc.MaxActivationDistance = 25
-                            end
-                        end
+                for _, obj in pairs(Workspace:GetDescendants()) do
+                    if obj:IsA("ProximityPrompt") then
+                        obj.MaxActivationDistance = 22
                     end
                 end
             end
 
-            -- 5. AUTO INTERACT
+            -- 5. AUTO-INTERACT GLOBAL (Agora escaneia os arredores do jogador diretamente!)
             if Settings.AutoInteract and hrp then
-                local currentRooms = Workspace:FindFirstChild("CurrentRooms")
-                if currentRooms then
-                    for _, room in pairs(currentRooms:GetChildren()) do
-                        for _, desc in pairs(room:GetDescendants()) do
-                            if desc:IsA("ProximityPrompt") and desc.Enabled then
-                                local pName = desc.Parent and desc.Parent.Name or ""
-                                if pName:find("Drawer") or pName:find("Key") or pName:find("Gold") or pName:find("Lockpick") or pName:find("Lighter") then
-                                    local pos = desc.Parent:IsA("Model") and desc.Parent:GetPivot().Position or (desc.Parent:IsA("BasePart") and desc.Parent.Position or nil)
-                                    if pos and (hrp.Position - pos).Magnitude < 20 then
-                                        desc.HoldDuration = 0
-                                        fireproximityprompt(desc)
-                                    end
+                for _, obj in pairs(Workspace:GetDescendants()) do
+                    if obj:IsA("ProximityPrompt") and obj.Enabled then
+                        local parent = obj.Parent
+                        if parent then
+                            local pName = parent.Name
+                            -- Verifica se o objeto está num raio de 16 studs de distância do jogador
+                            local pos = parent:IsA("Model") and parent:GetPivot().Position or (parent:IsA("BasePart") and parent.Position or nil)
+                            if pos and (hrp.Position - pos).Magnitude < 16 then
+                                -- Filtra apenas chaves, moedas, gavetas ou itens
+                                if pName:find("Drawer") or pName:find("Key") or pName:find("Gold") or pName:find("Lockpick") or pName:find("Lighter") or pName:find("Vitamins") then
+                                    obj.HoldDuration = 0
+                                    fireproximityprompt(obj)
                                 end
                             end
                         end
@@ -345,7 +379,18 @@ task.spawn(function()
                 end
             end
 
-            -- 6. ESP MONSTROS
+            -- ==========================================
+            -- 🧹 RE-RENDERIZAÇÃO SELETIVA DE ESP
+            -- ==========================================
+            
+            -- Limpar marcas antigas
+            for _, v in pairs(Workspace:GetDescendants()) do
+                if v.Name == "AUG_ESP_MONSTER" or v.Name == "AUG_ESP_ITEM" or v.Name == "AUG_ESP_DOOR" then
+                    v:Destroy()
+                end
+            end
+
+            -- ESP DE MONSTROS
             if Settings.ESP_Monsters then
                 for _, obj in pairs(Workspace:GetChildren()) do
                     if obj.Name:find("Moving") or obj.Name == "Figure" or obj.Name == "SeekMoving" or obj.Name == "Eyes" then
@@ -354,31 +399,31 @@ task.spawn(function()
                 end
             end
 
-            -- 7. ESP ITENS
+            -- ESP DE ITENS
             if Settings.ESP_Items then
-                local currentRooms = Workspace:FindFirstChild("CurrentRooms")
-                if currentRooms then
-                    for _, room in pairs(currentRooms:GetChildren()) do
-                        for _, item in pairs(room:GetDescendants()) do
-                            if item:IsA("Model") then
-                                local iName = item.Name
-                                if iName:find("Key") or iName:find("Lockpick") or iName:find("Lighter") or iName:find("Vitamins") then
-                                    CreateESP(item, iName, Color3.fromRGB(255, 140, 0), "AUG_ESP_ITEM")
-                                end
-                            end
+                for _, item in pairs(Workspace:GetDescendants()) do
+                    if item:IsA("Model") then
+                        local iName = item.Name
+                        if iName:find("Key") or iName:find("Lockpick") or iName:find("Lighter") or iName:find("Vitamins") then
+                            CreateESP(item, "🔑 " .. iName, Color3.fromRGB(255, 140, 0), "AUG_ESP_ITEM")
                         end
                     end
                 end
             end
 
-            -- 8. ANTI-DUPE (ESP PORTAS FALSAS)
-            if Settings.AntiDupe then
+            -- ESP DE PORTAS (VERDE E VERMELHO)
+            if Settings.ESP_Doors then
                 local currentRooms = Workspace:FindFirstChild("CurrentRooms")
                 if currentRooms then
                     for _, room in pairs(currentRooms:GetChildren()) do
-                        for _, d in pairs(room:GetChildren()) do
-                            if d.Name == "DupeDoor" or (d:FindFirstChild("Door") and d:FindFirstChild("Lock") and d.Name:find("Dupe")) then
-                                CreateESP(d, "🚨 PORTA FALSA!", Color3.fromRGB(255, 0, 0), "AUG_ESP_DUPE")
+                        for _, obj in pairs(room:GetChildren()) do
+                            -- Detetar portas normais (Reais)
+                            if obj.Name == "Door" and obj:FindFirstChild("ClientDoor") then
+                                CreateESP(obj.ClientDoor, "🚪 PORTA REAL", Color3.fromRGB(46, 204, 113), "AUG_ESP_DOOR")
+                            end
+                            -- Detetar portas do Dupe (Falsas)
+                            if obj.Name == "DupeDoor" and obj:FindFirstChild("Door") then
+                                CreateESP(obj.Door, "🚨 PORTA FALSA!", Color3.fromRGB(231, 76, 60), "AUG_ESP_DOOR")
                             end
                         end
                     end
