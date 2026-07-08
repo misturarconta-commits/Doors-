@@ -1,8 +1,9 @@
 --[[
-    🔥 AUGSHOP VIP - DOORS RAYFIELD (EDITION CORRIGIDA v8.0) 🔥
-    - ESP CORRIGIDO: Agora associa-se diretamente às BaseParts dos objetos.
-    - AUTO-INTERACT CORRIGIDO: Desativa o tempo de espera (HoldDuration) das gavetas/itens.
-    - SPEED SUAVE: Delta-time CFrame para evitar rubberband do anti-cheat.
+    🔥 AUGSHOP GRATIS - DOORS RAYFIELD (Versão Free v1.0) 🔥
+    - LIMITE SEGURO: Velocidade limitada a 22 studs/s para evitar 100% de rubberband.
+    - ESP ESTÁVEL: Rastreamento preciso de Monstros e Itens do mapa.
+    - AUTO-INTERACT: Abertura automática de gavetas sem tempo de espera.
+    - PREPARAÇÃO VIP: Base sólida para a futura versão paga do projeto.
 ]]
 
 local Players = game:GetService("Players")
@@ -12,7 +13,7 @@ local Lighting = game:GetService("Lighting")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local LocalPlayer = Players.LocalPlayer
 
--- Configurações Globais
+-- Configurações Globais (Edição Gratuita)
 local Settings = {
     Speed = 16,
     Noclip = false,
@@ -21,6 +22,10 @@ local Settings = {
     ESP_Items = false,
     AutoInteract = false
 }
+
+local OriginalBrightness = Lighting.Brightness
+local OriginalClockTime = Lighting.ClockTime
+local OriginalFogEnd = Lighting.FogEnd
 
 -- Limpeza de interfaces anteriores
 pcall(function()
@@ -33,14 +38,14 @@ end)
 local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
 
 local Window = Rayfield:CreateWindow({
-    Name = "🔥 AUGSHOP VIP | DOORS HUB",
-    LoadingTitle = "Injetando Correções...",
+    Name = "🔥 AUGSHOP GRATIS | DOORS HUB",
+    LoadingTitle = "Injetando Versão Gratuita...",
     LoadingSubtitle = "by AUGSHOP",
     ConfigurationSaving = { Enabled = false },
     KeySystem = false
 })
 
--- Alterar cores da Rayfield para Laranja
+-- Customização de Cores: Laranja Neon
 task.spawn(function()
     task.wait(1)
     pcall(function()
@@ -57,13 +62,14 @@ task.spawn(function()
 end)
 
 -- ==========================================
--- 🏃 ABA 1: MOVIMENTAÇÃO
+-- 🏃 ABA 1: MOVIMENTAÇÃO (GRATIS - LIMITADO)
 -- ==========================================
 local TabMove = Window:CreateTab("🏃 Movimentação", 4483362458)
 
 TabMove:CreateSlider({
-    Name = "Velocidade (Speed)",
-    Range = {16, 25},
+    Name = "Velocidade Segura (Speed)",
+    Info = "Limitado a 22 studs/s na versão grátis para segurança total.",
+    Range = {16, 22}, -- Limitado até 22 conforme solicitado
     Increment = 1,
     CurrentValue = 16,
     Flag = "SliderSpeed",
@@ -111,7 +117,7 @@ TabVisual:CreateToggle({
 })
 
 TabVisual:CreateToggle({
-    Name = "ESP Chaves / Gavetas / Itens",
+    Name = "ESP Chaves e Itens Úteis",
     CurrentValue = false,
     Flag = "EspItemsToggle",
     Callback = function(Value)
@@ -144,7 +150,7 @@ TabVisual:CreateToggle({
 local TabAuto = Window:CreateTab("⚙️ Automações", 4483362458)
 
 TabAuto:CreateToggle({
-    Name = "Auto Abrir Gavetas & Pegar Itens",
+    Name = "Auto-Coletor de Ouro & Gavetas",
     CurrentValue = false,
     Flag = "ToggleAutoInteract",
     Callback = function(Value)
@@ -153,10 +159,10 @@ TabAuto:CreateToggle({
 })
 
 -- ==========================================
--- 🚀 SISTEMA DE LOOPS (MOTOR DO JOGO)
+-- 🚀 SISTEMA DE LOOPS DO CLIENT
 -- ==========================================
 
--- NOCLIP
+-- LOOP DE NOCLIP
 RunService.Stepped:Connect(function()
     pcall(function()
         if Settings.Noclip then
@@ -172,7 +178,7 @@ RunService.Stepped:Connect(function()
     end)
 end)
 
--- SPEED MOVEMENT
+-- LOOP DE MOVIMENTO SUAVE (ATÉ 22 STUDS)
 RunService.RenderStepped:Connect(function(dt)
     pcall(function()
         if Settings.Speed > 16 then
@@ -180,13 +186,14 @@ RunService.RenderStepped:Connect(function(dt)
             local hum = char and char:FindFirstChildOfClass("Humanoid")
             local hrp = char and char:FindFirstChild("HumanoidRootPart")
             if hum and hrp and hum.MoveDirection.Magnitude > 0 then
+                -- Movimenta suavemente sem mexer na propriedade WalkSpeed padrão
                 hrp.CFrame = hrp.CFrame + (hum.MoveDirection * ((Settings.Speed - 16) * dt))
             end
         end
     end)
 end)
 
--- FUNÇÃO AUXILIAR DE ESP (Garante a criação numa BasePart)
+-- FUNÇÃO AUXILIAR DE ESP (Sempre atrelada a uma BasePart válida)
 local function CreateESP(parentObject, title, color, espName)
     pcall(function()
         local targetPart = nil
@@ -222,7 +229,7 @@ local function CreateESP(parentObject, title, color, espName)
     end)
 end
 
--- LOOP DE AUTOMAÇÃO E VISUAIS
+-- LOOP PRINCIPAL (ESP, FULLBRIGHT & AUTO-INTERACT)
 task.spawn(function()
     while task.wait(0.3) do
         pcall(function()
@@ -236,7 +243,7 @@ task.spawn(function()
                 Lighting.FogEnd = 999999
             end
 
-            -- AUTO INTERACT (Gavetas, Chaves e Ouro)
+            -- AUTO INTERACT
             if Settings.AutoInteract and hrp then
                 local currentRooms = Workspace:FindFirstChild("CurrentRooms")
                 if currentRooms then
@@ -247,7 +254,7 @@ task.spawn(function()
                                 if pName:find("Drawer") or pName:find("Key") or pName:find("Gold") or pName:find("Lockpick") or pName:find("Lighter") then
                                     local pos = desc.Parent:IsA("Model") and desc.Parent:GetPivot().Position or (desc.Parent:IsA("BasePart") and desc.Parent.Position or nil)
                                     if pos and (hrp.Position - pos).Magnitude < 14 then
-                                        desc.HoldDuration = 0 -- Zera o tempo de segurar o botão
+                                        desc.HoldDuration = 0 -- Remove delay para pegar na hora
                                         fireproximityprompt(desc)
                                     end
                                 end
@@ -257,7 +264,7 @@ task.spawn(function()
                 end
             end
 
-            -- ESP DE MONSTROS
+            -- ESP MONSTROS
             if Settings.ESP_Monsters then
                 for _, obj in pairs(Workspace:GetChildren()) do
                     if obj.Name:find("Moving") or obj.Name == "Figure" or obj.Name == "SeekMoving" or obj.Name == "Eyes" then
@@ -266,7 +273,7 @@ task.spawn(function()
                 end
             end
 
-            -- ESP DE ITENS & CHAVES
+            -- ESP ITENS
             if Settings.ESP_Items then
                 local currentRooms = Workspace:FindFirstChild("CurrentRooms")
                 if currentRooms then
