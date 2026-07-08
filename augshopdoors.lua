@@ -1,9 +1,8 @@
 --[[
-    🔥 AUGSHOP GRATIS - DOORS RAYFIELD (Versão Free v1.0) 🔥
-    - LIMITE SEGURO: Velocidade limitada a 22 studs/s para evitar 100% de rubberband.
-    - ESP ESTÁVEL: Rastreamento preciso de Monstros e Itens do mapa.
-    - AUTO-INTERACT: Abertura automática de gavetas sem tempo de espera.
-    - PREPARAÇÃO VIP: Base sólida para a futura versão paga do projeto.
+    🔥 AUGSHOP GRATIS - DOORS RAYFIELD (Versão Grátis Ultimate v2.0) 🔥
+    - NOVAS FUNÇÕES: Alerta Rush/Ambush, Anti-Screech, Anti-Dupe e Alcance Estendido.
+    - MOVIMENTAÇÃO: Speed limitado em 22 (100% sem Rubberband) e Noclip.
+    - VISUAIS: ESP Completo (Monstros, Itens, Portas Falsas) e Fullbright.
 ]]
 
 local Players = game:GetService("Players")
@@ -13,19 +12,19 @@ local Lighting = game:GetService("Lighting")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local LocalPlayer = Players.LocalPlayer
 
--- Configurações Globais (Edição Gratuita)
+-- Configurações Globais (Edição Gratuita Completa)
 local Settings = {
     Speed = 16,
     Noclip = false,
     Fullbright = false,
     ESP_Monsters = false,
     ESP_Items = false,
-    AutoInteract = false
+    AntiDupe = false,
+    AutoInteract = false,
+    EntityNotifier = false,
+    AntiScreech = false,
+    ReachInteraction = false
 }
-
-local OriginalBrightness = Lighting.Brightness
-local OriginalClockTime = Lighting.ClockTime
-local OriginalFogEnd = Lighting.FogEnd
 
 -- Limpeza de interfaces anteriores
 pcall(function()
@@ -39,7 +38,7 @@ local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
 
 local Window = Rayfield:CreateWindow({
     Name = "🔥 AUGSHOP GRATIS | DOORS HUB",
-    LoadingTitle = "Injetando Versão Gratuita...",
+    LoadingTitle = "Carregando Edição Grátis Ultimate...",
     LoadingSubtitle = "by AUGSHOP",
     ConfigurationSaving = { Enabled = false },
     KeySystem = false
@@ -62,14 +61,14 @@ task.spawn(function()
 end)
 
 -- ==========================================
--- 🏃 ABA 1: MOVIMENTAÇÃO (GRATIS - LIMITADO)
+-- 🏃 ABA 1: MOVIMENTAÇÃO
 -- ==========================================
 local TabMove = Window:CreateTab("🏃 Movimentação", 4483362458)
 
 TabMove:CreateSlider({
     Name = "Velocidade Segura (Speed)",
     Info = "Limitado a 22 studs/s na versão grátis para segurança total.",
-    Range = {16, 22}, -- Limitado até 22 conforme solicitado
+    Range = {16, 22},
     Increment = 1,
     CurrentValue = 16,
     Flag = "SliderSpeed",
@@ -131,6 +130,20 @@ TabVisual:CreateToggle({
 })
 
 TabVisual:CreateToggle({
+    Name = "Anti-Dupe (Aviso de Porta Falsa)",
+    CurrentValue = false,
+    Flag = "AntiDupeToggle",
+    Callback = function(Value)
+        Settings.AntiDupe = Value
+        if not Value then
+            for _, v in pairs(Workspace:GetDescendants()) do
+                if v.Name == "AUG_ESP_DUPE" then v:Destroy() end
+            end
+        end
+    end,
+})
+
+TabVisual:CreateToggle({
     Name = "Visão Noturna (Fullbright)",
     CurrentValue = false,
     Flag = "ToggleLight",
@@ -145,9 +158,36 @@ TabVisual:CreateToggle({
 })
 
 -- ==========================================
--- ⚙️ ABA 3: AUTOMAÇÕES
+-- ⚙️ ABA 3: AUTOMAÇÕES & PROTEÇÃO
 -- ==========================================
 local TabAuto = Window:CreateTab("⚙️ Automações", 4483362458)
+
+TabAuto:CreateToggle({
+    Name = "Alerta de Entidades (Rush / Ambush)",
+    CurrentValue = false,
+    Flag = "ToggleNotifier",
+    Callback = function(Value)
+        Settings.EntityNotifier = Value
+    end,
+})
+
+TabAuto:CreateToggle({
+    Name = "Anti-Screech (Olhar Automático)",
+    CurrentValue = false,
+    Flag = "ToggleAntiScreech",
+    Callback = function(Value)
+        Settings.AntiScreech = Value
+    end,
+})
+
+TabAuto:CreateToggle({
+    Name = "Alcance Estendido (Longa Distância)",
+    CurrentValue = false,
+    Flag = "ToggleReach",
+    Callback = function(Value)
+        Settings.ReachInteraction = Value
+    end,
+})
 
 TabAuto:CreateToggle({
     Name = "Auto-Coletor de Ouro & Gavetas",
@@ -159,10 +199,10 @@ TabAuto:CreateToggle({
 })
 
 -- ==========================================
--- 🚀 SISTEMA DE LOOPS DO CLIENT
+-- 🚀 LOOPS E SISTEMAS DO SCRIPT
 -- ==========================================
 
--- LOOP DE NOCLIP
+-- NOCLIP
 RunService.Stepped:Connect(function()
     pcall(function()
         if Settings.Noclip then
@@ -178,7 +218,7 @@ RunService.Stepped:Connect(function()
     end)
 end)
 
--- LOOP DE MOVIMENTO SUAVE (ATÉ 22 STUDS)
+-- SPEED MOVEMENT
 RunService.RenderStepped:Connect(function(dt)
     pcall(function()
         if Settings.Speed > 16 then
@@ -186,14 +226,13 @@ RunService.RenderStepped:Connect(function(dt)
             local hum = char and char:FindFirstChildOfClass("Humanoid")
             local hrp = char and char:FindFirstChild("HumanoidRootPart")
             if hum and hrp and hum.MoveDirection.Magnitude > 0 then
-                -- Movimenta suavemente sem mexer na propriedade WalkSpeed padrão
                 hrp.CFrame = hrp.CFrame + (hum.MoveDirection * ((Settings.Speed - 16) * dt))
             end
         end
     end)
 end)
 
--- FUNÇÃO AUXILIAR DE ESP (Sempre atrelada a uma BasePart válida)
+-- FUNÇÃO AUXILIAR DE ESP
 local function CreateESP(parentObject, title, color, espName)
     pcall(function()
         local targetPart = nil
@@ -229,21 +268,63 @@ local function CreateESP(parentObject, title, color, espName)
     end)
 end
 
--- LOOP PRINCIPAL (ESP, FULLBRIGHT & AUTO-INTERACT)
+-- LOOP PRINCIPAL (AUTOMAÇÕES, VISUAIS E ALERTAS)
 task.spawn(function()
-    while task.wait(0.3) do
+    while task.wait(0.2) do
         pcall(function()
             local char = LocalPlayer.Character
             local hrp = char and char:FindFirstChild("HumanoidRootPart")
+            local camera = Workspace.CurrentCamera
 
-            -- FULLBRIGHT
+            -- 1. FULLBRIGHT
             if Settings.Fullbright then
                 Lighting.Brightness = 3
                 Lighting.ClockTime = 12
                 Lighting.FogEnd = 999999
             end
 
-            -- AUTO INTERACT
+            -- 2. ALERTA DE ENTIDADES (RUSH / AMBUSH)
+            if Settings.EntityNotifier then
+                for _, obj in pairs(Workspace:GetChildren()) do
+                    if (obj.Name == "RushMoving" or obj.Name == "AmbushMoving") and not obj:FindFirstChild("AUG_Notified") then
+                        local tag = Instance.new("BoolValue", obj)
+                        tag.Name = "AUG_Notified"
+                        Rayfield:Notify({
+                            Title = "🚨 PERIGO DETETADO!",
+                            Content = (obj.Name:find("Rush") and "Rush" or "Ambush") .. " está vindo! ESCONDA-SE!",
+                            Duration = 5,
+                            Image = 4483362458,
+                        })
+                    end
+                end
+            end
+
+            -- 3. ANTI-SCREECH (OLHAR AUTOMÁTICO)
+            if Settings.AntiScreech then
+                local screech = camera:FindFirstChild("Screech") or Workspace:FindFirstChild("Screech")
+                if screech then
+                    local part = screech:FindFirstChild("Core") or screech:FindFirstChildWhichIsA("BasePart")
+                    if part then
+                        camera.CFrame = CFrame.new(camera.CFrame.Position, part.Position)
+                    end
+                end
+            end
+
+            -- 4. ALCANCE ESTENDIDO (REACH)
+            if Settings.ReachInteraction then
+                local currentRooms = Workspace:FindFirstChild("CurrentRooms")
+                if currentRooms then
+                    for _, room in pairs(currentRooms:GetChildren()) do
+                        for _, desc in pairs(room:GetDescendants()) do
+                            if desc:IsA("ProximityPrompt") then
+                                desc.MaxActivationDistance = 25
+                            end
+                        end
+                    end
+                end
+            end
+
+            -- 5. AUTO INTERACT
             if Settings.AutoInteract and hrp then
                 local currentRooms = Workspace:FindFirstChild("CurrentRooms")
                 if currentRooms then
@@ -253,8 +334,8 @@ task.spawn(function()
                                 local pName = desc.Parent and desc.Parent.Name or ""
                                 if pName:find("Drawer") or pName:find("Key") or pName:find("Gold") or pName:find("Lockpick") or pName:find("Lighter") then
                                     local pos = desc.Parent:IsA("Model") and desc.Parent:GetPivot().Position or (desc.Parent:IsA("BasePart") and desc.Parent.Position or nil)
-                                    if pos and (hrp.Position - pos).Magnitude < 14 then
-                                        desc.HoldDuration = 0 -- Remove delay para pegar na hora
+                                    if pos and (hrp.Position - pos).Magnitude < 20 then
+                                        desc.HoldDuration = 0
                                         fireproximityprompt(desc)
                                     end
                                 end
@@ -264,7 +345,7 @@ task.spawn(function()
                 end
             end
 
-            -- ESP MONSTROS
+            -- 6. ESP MONSTROS
             if Settings.ESP_Monsters then
                 for _, obj in pairs(Workspace:GetChildren()) do
                     if obj.Name:find("Moving") or obj.Name == "Figure" or obj.Name == "SeekMoving" or obj.Name == "Eyes" then
@@ -273,7 +354,7 @@ task.spawn(function()
                 end
             end
 
-            -- ESP ITENS
+            -- 7. ESP ITENS
             if Settings.ESP_Items then
                 local currentRooms = Workspace:FindFirstChild("CurrentRooms")
                 if currentRooms then
@@ -284,6 +365,20 @@ task.spawn(function()
                                 if iName:find("Key") or iName:find("Lockpick") or iName:find("Lighter") or iName:find("Vitamins") then
                                     CreateESP(item, iName, Color3.fromRGB(255, 140, 0), "AUG_ESP_ITEM")
                                 end
+                            end
+                        end
+                    end
+                end
+            end
+
+            -- 8. ANTI-DUPE (ESP PORTAS FALSAS)
+            if Settings.AntiDupe then
+                local currentRooms = Workspace:FindFirstChild("CurrentRooms")
+                if currentRooms then
+                    for _, room in pairs(currentRooms:GetChildren()) do
+                        for _, d in pairs(room:GetChildren()) do
+                            if d.Name == "DupeDoor" or (d:FindFirstChild("Door") and d:FindFirstChild("Lock") and d.Name:find("Dupe")) then
+                                CreateESP(d, "🚨 PORTA FALSA!", Color3.fromRGB(255, 0, 0), "AUG_ESP_DUPE")
                             end
                         end
                     end
