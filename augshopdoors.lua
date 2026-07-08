@@ -1,8 +1,8 @@
 --[[
-    🔥 AUGSHOP VIP - DOORS RAYFIELD (LARANJA NEON) 🔥
-    - BYPASS DE CACHE: Código 100% otimizado para evitar crash no executor.
-    - NOCLIP AGRESSIVO: Força a passagem por portas e paredes (60 FPS).
-    - SPEED C-FRAME: Anda rápido sem o rubberband (sem puxar pra trás).
+    🔥 AUGSHOP VIP - DOORS RAYFIELD (EDITION CORRIGIDA v8.0) 🔥
+    - ESP CORRIGIDO: Agora associa-se diretamente às BaseParts dos objetos.
+    - AUTO-INTERACT CORRIGIDO: Desativa o tempo de espera (HoldDuration) das gavetas/itens.
+    - SPEED SUAVE: Delta-time CFrame para evitar rubberband do anti-cheat.
 ]]
 
 local Players = game:GetService("Players")
@@ -17,29 +17,30 @@ local Settings = {
     Speed = 16,
     Noclip = false,
     Fullbright = false,
-    ESP = false,
+    ESP_Monsters = false,
+    ESP_Items = false,
     AutoInteract = false
 }
 
--- Destruir interfaces antigas para não bugar
+-- Limpeza de interfaces anteriores
 pcall(function()
     if game:GetService("CoreGui"):FindFirstChild("Rayfield") then
         game:GetService("CoreGui").Rayfield:Destroy()
     end
 end)
 
--- Carregar Rayfield
+-- Carregar Rayfield UI
 local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
 
 local Window = Rayfield:CreateWindow({
     Name = "🔥 AUGSHOP VIP | DOORS HUB",
-    LoadingTitle = "Injetando Bypasses...",
+    LoadingTitle = "Injetando Correções...",
     LoadingSubtitle = "by AUGSHOP",
     ConfigurationSaving = { Enabled = false },
     KeySystem = false
 })
 
--- Mudar a cor para Laranja
+-- Alterar cores da Rayfield para Laranja
 task.spawn(function()
     task.wait(1)
     pcall(function()
@@ -58,11 +59,11 @@ end)
 -- ==========================================
 -- 🏃 ABA 1: MOVIMENTAÇÃO
 -- ==========================================
-local TabMove = Window:CreateTab("Movimentação", 4483362458)
+local TabMove = Window:CreateTab("🏃 Movimentação", 4483362458)
 
 TabMove:CreateSlider({
-    Name = "Velocidade Segura (Speed)",
-    Range = {16, 100},
+    Name = "Velocidade (Speed)",
+    Range = {16, 25},
     Increment = 1,
     CurrentValue = 16,
     Flag = "SliderSpeed",
@@ -72,29 +73,59 @@ TabMove:CreateSlider({
 })
 
 TabMove:CreateToggle({
-    Name = "Atravessar Tudo (Noclip Agressivo)",
+    Name = "Atravessar Paredes (Noclip)",
     CurrentValue = false,
     Flag = "ToggleNoclip",
     Callback = function(Value)
         Settings.Noclip = Value
         if not Value then
-            local char = LocalPlayer.Character
-            if char then
-                for _, v in pairs(char:GetDescendants()) do
-                    if v:IsA("BasePart") then v.CanCollide = true end
+            pcall(function()
+                local char = LocalPlayer.Character
+                if char then
+                    for _, v in pairs(char:GetDescendants()) do
+                        if v:IsA("BasePart") then v.CanCollide = true end
+                    end
                 end
-            end
+            end)
         end
     end,
 })
 
 -- ==========================================
--- 👁️ ABA 2: VISUAL E ESP
+-- 👁️ ABA 2: VISUAIS & ESP
 -- ==========================================
-local TabVisual = Window:CreateTab("Visuais", 4483362458)
+local TabVisual = Window:CreateTab("👁️ Visuais", 4483362458)
 
 TabVisual:CreateToggle({
-    Name = "Visão Noturna Absoluta (Fullbright)",
+    Name = "ESP Monstros",
+    CurrentValue = false,
+    Flag = "EspMonstersToggle",
+    Callback = function(Value)
+        Settings.ESP_Monsters = Value
+        if not Value then
+            for _, v in pairs(Workspace:GetDescendants()) do
+                if v.Name == "AUG_ESP_MONSTER" then v:Destroy() end
+            end
+        end
+    end,
+})
+
+TabVisual:CreateToggle({
+    Name = "ESP Chaves / Gavetas / Itens",
+    CurrentValue = false,
+    Flag = "EspItemsToggle",
+    Callback = function(Value)
+        Settings.ESP_Items = Value
+        if not Value then
+            for _, v in pairs(Workspace:GetDescendants()) do
+                if v.Name == "AUG_ESP_ITEM" then v:Destroy() end
+            end
+        end
+    end,
+})
+
+TabVisual:CreateToggle({
+    Name = "Visão Noturna (Fullbright)",
     CurrentValue = false,
     Flag = "ToggleLight",
     Callback = function(Value)
@@ -107,39 +138,25 @@ TabVisual:CreateToggle({
     end,
 })
 
-TabVisual:CreateToggle({
-    Name = "ESP Supremo (Monstros e Itens)",
-    CurrentValue = false,
-    Flag = "ToggleESP",
-    Callback = function(Value)
-        Settings.ESP = Value
-        if not Value then
-            for _, v in pairs(Workspace:GetDescendants()) do
-                if v.Name == "AUG_ESP" then v:Destroy() end
-            end
-        end
-    end,
-})
-
 -- ==========================================
 -- ⚙️ ABA 3: AUTOMAÇÕES
 -- ==========================================
-local TabAuto = Window:CreateTab("Automações", 4483362458)
+local TabAuto = Window:CreateTab("⚙️ Automações", 4483362458)
 
 TabAuto:CreateToggle({
-    Name = "Coleta Automática (Gavetas/Itens)",
+    Name = "Auto Abrir Gavetas & Pegar Itens",
     CurrentValue = false,
-    Flag = "ToggleAuto",
+    Flag = "ToggleAutoInteract",
     Callback = function(Value)
         Settings.AutoInteract = Value
     end,
 })
 
 -- ==========================================
--- 🚀 LOOPS DO MOTOR DO JOGO (BYPASSES)
+-- 🚀 SISTEMA DE LOOPS (MOTOR DO JOGO)
 -- ==========================================
 
--- NOCLIP AGRESSIVO: Força a desativação da colisão 60x por segundo
+-- NOCLIP
 RunService.Stepped:Connect(function()
     pcall(function()
         if Settings.Noclip then
@@ -155,7 +172,7 @@ RunService.Stepped:Connect(function()
     end)
 end)
 
--- SPEED C-FRAME: Anda adicionando distância para evitar o Rubberband
+-- SPEED MOVEMENT
 RunService.RenderStepped:Connect(function(dt)
     pcall(function()
         if Settings.Speed > 16 then
@@ -163,17 +180,55 @@ RunService.RenderStepped:Connect(function(dt)
             local hum = char and char:FindFirstChildOfClass("Humanoid")
             local hrp = char and char:FindFirstChild("HumanoidRootPart")
             if hum and hrp and hum.MoveDirection.Magnitude > 0 then
-                -- Move o personagem pela diferença da velocidade sem mexer no WalkSpeed
                 hrp.CFrame = hrp.CFrame + (hum.MoveDirection * ((Settings.Speed - 16) * dt))
             end
         end
     end)
 end)
 
--- LOOP GERAL: Luz, ESP e Automações
+-- FUNÇÃO AUXILIAR DE ESP (Garante a criação numa BasePart)
+local function CreateESP(parentObject, title, color, espName)
+    pcall(function()
+        local targetPart = nil
+        if parentObject:IsA("BasePart") then
+            targetPart = parentObject
+        elseif parentObject:IsA("Model") then
+            targetPart = parentObject.PrimaryPart or parentObject:FindFirstChildWhichIsA("BasePart")
+        end
+
+        if targetPart and not targetPart:FindFirstChild(espName) then
+            local billboard = Instance.new("BillboardGui")
+            billboard.Name = espName
+            billboard.Adornee = targetPart
+            billboard.AlwaysOnTop = true
+            billboard.Size = UDim2.new(0, 100, 0, 30)
+            billboard.Parent = targetPart
+
+            local frame = Instance.new("Frame", billboard)
+            frame.Size = UDim2.new(1, 0, 1, 0)
+            frame.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
+            frame.BackgroundTransparency = 0.3
+            frame.BorderColor3 = color
+            frame.BorderSizePixel = 1
+
+            local label = Instance.new("TextLabel", frame)
+            label.Size = UDim2.new(1, 0, 1, 0)
+            label.BackgroundTransparency = 1
+            label.Text = title
+            label.TextColor3 = color
+            label.Font = Enum.Font.SourceSansBold
+            label.TextSize = 12
+        end
+    end)
+end
+
+-- LOOP DE AUTOMAÇÃO E VISUAIS
 task.spawn(function()
-    while task.wait(0.5) do
+    while task.wait(0.3) do
         pcall(function()
+            local char = LocalPlayer.Character
+            local hrp = char and char:FindFirstChild("HumanoidRootPart")
+
             -- FULLBRIGHT
             if Settings.Fullbright then
                 Lighting.Brightness = 3
@@ -181,17 +236,20 @@ task.spawn(function()
                 Lighting.FogEnd = 999999
             end
 
-            -- AUTO INTERACT
-            if Settings.AutoInteract then
-                local char = LocalPlayer.Character
-                local hrp = char and char:FindFirstChild("HumanoidRootPart")
-                if hrp then
-                    for _, obj in pairs(Workspace:GetDescendants()) do
-                        if obj:IsA("ProximityPrompt") and obj.Enabled then
-                            local parentName = obj.Parent and obj.Parent.Name or ""
-                            if parentName:find("Drawer") or parentName:find("Gold") or parentName:find("Key") then
-                                if (hrp.Position - obj.Parent:GetPivot().Position).Magnitude < 15 then
-                                    fireproximityprompt(obj)
+            -- AUTO INTERACT (Gavetas, Chaves e Ouro)
+            if Settings.AutoInteract and hrp then
+                local currentRooms = Workspace:FindFirstChild("CurrentRooms")
+                if currentRooms then
+                    for _, room in pairs(currentRooms:GetChildren()) do
+                        for _, desc in pairs(room:GetDescendants()) do
+                            if desc:IsA("ProximityPrompt") and desc.Enabled then
+                                local pName = desc.Parent and desc.Parent.Name or ""
+                                if pName:find("Drawer") or pName:find("Key") or pName:find("Gold") or pName:find("Lockpick") or pName:find("Lighter") then
+                                    local pos = desc.Parent:IsA("Model") and desc.Parent:GetPivot().Position or (desc.Parent:IsA("BasePart") and desc.Parent.Position or nil)
+                                    if pos and (hrp.Position - pos).Magnitude < 14 then
+                                        desc.HoldDuration = 0 -- Zera o tempo de segurar o botão
+                                        fireproximityprompt(desc)
+                                    end
                                 end
                             end
                         end
@@ -199,40 +257,32 @@ task.spawn(function()
                 end
             end
 
-            -- ESP
-            if Settings.ESP then
-                -- Limpa ESP Antigo
-                for _, v in pairs(Workspace:GetDescendants()) do
-                    if v.Name == "AUG_ESP" then v:Destroy() end
+            -- ESP DE MONSTROS
+            if Settings.ESP_Monsters then
+                for _, obj in pairs(Workspace:GetChildren()) do
+                    if obj.Name:find("Moving") or obj.Name == "Figure" or obj.Name == "SeekMoving" or obj.Name == "Eyes" then
+                        CreateESP(obj, "🚨 MONSTRO", Color3.fromRGB(255, 30, 30), "AUG_ESP_MONSTER")
+                    end
                 end
+            end
 
-                -- Adiciona ESP
-                for _, obj in pairs(Workspace:GetDescendants()) do
-                    local isMonster = obj.Name:find("Moving") or obj.Name == "Figure"
-                    local isItem = obj:IsA("Model") and (obj.Name:find("Key") or obj.Name:find("Gold") or obj.Name:find("Lockpick"))
-                    
-                    if (isMonster or isItem) and obj:FindFirstChildOfClass("BasePart") then
-                        local b = Instance.new("BillboardGui", obj)
-                        b.Name = "AUG_ESP"
-                        b.AlwaysOnTop = true
-                        b.Size = UDim2.new(0, 100, 0, 30)
-                        
-                        local l = Instance.new("TextLabel", b)
-                        l.Size = UDim2.new(1,0,1,0)
-                        l.BackgroundTransparency = 1
-                        l.Font = Enum.Font.SourceSansBold
-                        l.TextSize = 13
-
-                        if isMonster then
-                            l.Text = "🚨 MONSTRO"
-                            l.TextColor3 = Color3.fromRGB(255, 0, 0)
-                        else
-                            l.Text = obj.Name
-                            l.TextColor3 = Color3.fromRGB(255, 140, 0)
+            -- ESP DE ITENS & CHAVES
+            if Settings.ESP_Items then
+                local currentRooms = Workspace:FindFirstChild("CurrentRooms")
+                if currentRooms then
+                    for _, room in pairs(currentRooms:GetChildren()) do
+                        for _, item in pairs(room:GetDescendants()) do
+                            if item:IsA("Model") then
+                                local iName = item.Name
+                                if iName:find("Key") or iName:find("Lockpick") or iName:find("Lighter") or iName:find("Vitamins") then
+                                    CreateESP(item, iName, Color3.fromRGB(255, 140, 0), "AUG_ESP_ITEM")
+                                end
+                            end
                         end
                     end
                 end
             end
+
         end)
     end
 end)
